@@ -5,31 +5,32 @@ classdef SVM
     properties
         X
         y
-        holdoutSize = 5
+        classNames
+        model
     end
     
     methods
-        function obj = SVM(X,y)
+        function obj = SVM(X,y, classNames)
             %SVM Construct an instance of this class
             %   Detailed explanation goes here
             obj.X = X;
             obj.y = y;
+            obj.classNames = classNames;
         end
         
-        function model = train(obj)
+        function obj = train(obj)
             % Train and optimize SVM classifier using the guassian kernel
             % function. It is good practice to standardize the data.
             % For reproducibility
             rng default;
-            model = fitcsvm(obj.X, obj.y);
+            obj.model = fitcecoc(obj.X, obj.y, 'ClassNames', obj.classNames);
         end
         
-        function model = optimize(obj)
+        function obj = optimize(obj)
             % Set up a partition for cross-validation. This step fixes the
             % train and test sets that the optimization uses at each step.
-            [rows, ~] = size(obj.y);
-            
-            cv = cvpartition(rows,'KFold', obj.holdoutSize);
+            % create 5-fold cross validation
+            cv = cvpartition(size(obj.y, 1), 'Holdout', 1/3);
             % set options to use Bayesian optimization. Use the same
             % cross-validation partition cv in all optimizations. For
             % reproducibility, we use the 'expected-improvement-plus'
@@ -54,14 +55,17 @@ classdef SVM
             % function and the hyper-parameter options. Optimize all
             % eligible parameters (BoxConstraint, KernelScale,
             % KernelFunction, PolynomialOrder, Standardize).
-            model = fitrsvm(obj.X, obj.y,...
-                'OptimizeHyperparameters','auto',...
-                'HyperparameterOptimizationOptions',opts);
-            % Compare the generalization error of the models. In this case,
-            % the generalization error is the out-of-sample mean-squared
-            % error.
-%             rmse = sqrt(kfoldLoss(model));
-%             fprintf("Root mean squared for SVM is: %.2f%\n", rmse);
+            obj.model = fitcecoc(obj.X, obj.y,...
+                'ClassNames', obj.classNames,...
+                'OptimizeHyperparameters', {'BoxConstraint','KernelScale'},...
+                'HyperparameterOptimizationOptions',opts);     
+        end
+        
+        function acc = score(obj, inputs, targets)
+            % Evaluate network performance on validation set by computing
+            % rmse.
+            predicted = predict(obj.model, inputs);
+            acc = sum(targets == predicted)/numel(targets);
         end
     end
 end

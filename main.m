@@ -7,11 +7,12 @@ addpath(genpath("models"));
 % add libs folder to path
 addpath(genpath("libs"));
 % data source https://fsdkenya.org/publication/finaccess2019/
-dataPath = sprintf('%s/data/abalone.csv', pwd);
+dataPath = sprintf('%s/data/Frogs_MFCCs.csv', pwd);
 rawData = readtable(dataPath);
-
 % define the target column
-targetCol = 'Age';
+targetCol = 'Family';
+% define class names
+classNames = categorical({'Bufonidae', 'Dendrobatidae', 'Hylidae', 'Leptodactylidae'});
 %Pre process data by converting all categorical columns to categorical data
 %type and reposition the target column to the end of the table.
 [cleanData, X, y] = PreProcessing(rawData, targetCol);
@@ -37,7 +38,7 @@ while section ~= 0
             pause(3)
         case 2
             % Hyperparameter Tuning of Models
-            [mlp, svm] = HyperParameterTuning(X, y);
+            [mlp, svm] = HyperParameterTuning(X, y, classNames);
             pause(3)
         case 3
             % Performance of Models: MLP vs SVM

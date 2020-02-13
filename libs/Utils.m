@@ -7,12 +7,13 @@ classdef Utils
             % Split training data into train and test using holdout
             % cross-validation method.
             rng("default") % For reproducibility
-            cv = cvpartition(y,"Holdout",holdout);
-
-            X_train = X(training(cv),:);
-            y_train = y(training(cv));
-            X_test = X(test(cv),:);
-            y_test = y(test(cv));
+            cv = cvpartition(size(y, 1), "Holdout", holdout);
+            idx = cv.test;
+            
+            X_train = X(~idx, :);
+            y_train = y(~idx, :);
+            X_test = X(idx, :);
+            y_test = y(idx, :);
         end
         
         function [X] = standardScalar(X)
