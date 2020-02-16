@@ -15,5 +15,18 @@ function DataAnalysis(data)
     % summarize the data
     disp("Print summary of data table:");
     summary(data);
+    %% Univariate visualizations
+    
+    % Distribution of Families
+    figure('Name', "Distribution of Anuran Families", 'pos', [10 400 800 400])
+    subplot(1,2,1)
+    histogram(categorical(data.Family));
+    title('Families');
+    ylabel('Number of Observations');
+    
+    subplot(1,2,2)
+    histogram(categorical(data.FamilyGroup));
+    title('Target Variable : Family Group');
+    ylabel('Number of Observations');
 end
 

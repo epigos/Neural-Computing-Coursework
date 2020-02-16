@@ -6,6 +6,7 @@ classdef MLP
         X
         y
         net
+        ObjectiveMinimumTrace
     end
     
     methods
@@ -17,12 +18,38 @@ classdef MLP
             obj.y = dummyvar(y);
         end
         
-        function obj = train(obj, varargin)
+        function obj = fit(obj, varargin)
             %METHOD1 Summary of this method goes here
             %   Detailed explanation goes here
-            obj.net = patternnet(10, 'traingd');
-            obj.net.trainParam.lr = 0.1;
-            obj.net = train(obj.net, obj.X', obj.y');
+            % handle input variables
+            p = inputParser;
+            p.addParameter('NetworkDepth', 1);
+            p.addParameter('HiddenLayerSize', 10);
+            p.addParameter('Lr', 0.1);
+            p.addParameter('Momentum', 0.8);
+            p.addParameter('TrainFcn', 'traingda');
+            p.addParameter('TransferFcn', 'logsig');
+            p.addParameter('epochs', 500);
+            p.addParameter('trainNet', true);
+            parse(p, varargin{:});
+            
+            % Train final model on full training set using the best hyperparameters
+            hiddenLayerSize = ones(1, p.Results.NetworkDepth) * p.Results.HiddenLayerSize;
+            % Build Network
+            obj.net = patternnet(hiddenLayerSize, char(p.Results.TrainFcn)); 
+            % Specify number of epochs
+            obj.net.trainParam.epochs = p.Results.epochs;
+            obj.net.trainParam.lr = p.Results.Lr; % Update Learning Rate (if any)
+            obj.net.trainParam.mc = p.Results.Momentum; % Update Momentum Constant (if any)
+            obj.net.divideMode = 'none'; % Use all data for Training
+            for i = 1:p.Results.NetworkDepth
+                % Update Activation Function of Layers
+                obj.net.layers{i}.transferFcn = char(p.Results.TransferFcn); 
+            end
+            
+            if p.Results.trainNet == true
+                obj.net = train(obj.net, obj.X', obj.y');
+            end
         end
         
         function obj = optimize(obj)
@@ -42,7 +69,7 @@ classdef MLP
             % Define a train/validation split to use inside the objective function
             cv = cvpartition(size(obj.y, 1), 'Holdout', 1/3);
             % Define hyperparameters to optimize
-            vars = [optimizableVariable('networkDepth', [1, 3], 'Type', 'integer');
+            vars = [optimizableVariable('networkDepth', [1, 4], 'Type', 'integer');
                 optimizableVariable('hiddenLayerSize', [1, 50], 'Type', 'integer');
                 optimizableVariable('lr', [1e-3 1], 'Transform', 'log');
                 optimizableVariable('momentum', [0.8 0.95]);
@@ -56,28 +83,31 @@ classdef MLP
             % Optimize hyperparameters
             results = bayesopt(minfn, vars, 'UseParallel', useParallel,...
                 'IsObjectiveDeterministic', false,...
+                'MaxObjectiveEvaluations',2,...
                 'AcquisitionFunctionName', 'expected-improvement-plus');
             T = bestPoint(results);
             
+            % set hyper-parameter search results
+            obj.ObjectiveMinimumTrace = results;
+            
             % Train final model on full training set using the best hyperparameters
-            hiddenLayerSize = ones(1, T.networkDepth) * T.hiddenLayerSize;
-            obj.net = patternnet(hiddenLayerSize, char(T.trainFcn));
-            obj.net.trainParam.lr = T.lr; % Update Learning Rate (if any)
-            obj.net.trainParam.mc = T.momentum; % Update Momentum Constant (if any)
-            obj.net.divideMode = 'none'; % Use all data for Training
-            for i = 1:T.networkDepth
-                % Update Activation Function of Layers
-                obj.net.layers{i}.transferFcn = char(T.transferFcn); 
-            end
+            obj = obj.fit('NetworkDepth', T.networkDepth,...
+                'HiddenLayerSize', T.hiddenLayerSize,...
+                'Lr',T.lr, 'Momentum', T.momentum,...
+                'TrainFcn', T.trainFcn,'TransferFcn', T.transferFcn);
+            
+        end
+        function outputs = predict(obj, inputs)
+           outputs = obj.net(inputs'); 
         end
         function acc = score(obj, inputs, targets)
             % Evaluate network performance on validation set by computing
-            % rmse.
-            % train network with evaluation set
-            targets = dummyvar(targets);
-            obj.net = train(obj.net, inputs', targets');
+            % classification accuracy.
+            
             % make predictions
-            predicted = obj.net(inputs');
+            predicted = obj.predict(inputs);
+            
+            targets = dummyvar(targets);
             targetInd = vec2ind(targets');
             predInd = vec2ind(predicted);
             acc = sum(targetInd == predInd)/numel(targetInd);
@@ -101,8 +131,8 @@ classdef MLP
             net = patternnet(hiddenLayerSize, char(trainFcn)); 
             % Specify number of epochs
             net.trainParam.epochs = 500;
-            % Early stopping after 6 consecutive increases of Validation Performance
-            net.trainParam.max_fail = 6;
+            % Early stopping after 5 consecutive increases of Validation Performance
+            net.trainParam.max_fail = 5;
             net.trainParam.lr = lr; % Update Learning Rate
             net.trainParam.mc = momentum; % Update Learning Rate
             % Update Activation Function of Layers
@@ -123,6 +153,11 @@ classdef MLP
             tind = vec2ind(targets);
             yind = vec2ind(outputs);
             loss = sum(tind(cv.test) ~= yind(cv.test))/numel(tind(cv.test));
+        end
+        
+        function labels = labelsFromScores(scores, classNames)
+            labels = vec2ind(scores)';
+            labels = categorical(labels, [2, 1], cellstr(classNames));
         end
     end
 end

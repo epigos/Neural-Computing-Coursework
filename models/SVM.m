@@ -7,6 +7,7 @@ classdef SVM
         y
         classNames
         model
+        ObjectiveMinimumTrace
     end
     
     methods
@@ -18,12 +19,25 @@ classdef SVM
             obj.classNames = classNames;
         end
         
-        function obj = train(obj)
+        function obj = fit(obj, varargin)
             % Train and optimize SVM classifier using the guassian kernel
             % function. It is good practice to standardize the data.
+            % handle input variables
+            p = inputParser;
+            p.addParameter('BoxConstraint', 1);
+            p.addParameter('KernelScale', 'auto');
+            p.addParameter('KernelFunction', 'rbf');
+            parse(p, varargin{:});
             % For reproducibility
             rng default;
-            obj.model = fitcecoc(obj.X, obj.y, 'ClassNames', obj.classNames);
+            % create svm template with optimized values
+            t = templateSVM('BoxConstraint', p.Results.BoxConstraint,...
+                'KernelScale',p.Results.KernelScale,...
+                'KernelFunction', p.Results.KernelFunction);
+            % train svm model
+            obj.model = fitcecoc(obj.X, obj.y,...
+                'ClassNames', obj.classNames,...
+                'Learners', t);
         end
         
         function obj = optimize(obj)
@@ -37,6 +51,7 @@ classdef SVM
             % acquisition function.
             opts = struct('Optimizer','bayesopt','ShowPlots',true,...
                 'CVPartition',cv, ...
+                'MaxObjectiveEvaluations',2,...
                 'AcquisitionFunctionName', 'expected-improvement-plus');
             try
                 % Start a parallel pool
@@ -55,10 +70,17 @@ classdef SVM
             % function and the hyper-parameter options. Optimize all
             % eligible parameters (BoxConstraint, KernelScale,
             % KernelFunction, PolynomialOrder, Standardize).
+            vars = {'BoxConstraint','KernelScale', 'KernelFunction'};
             obj.model = fitcecoc(obj.X, obj.y,...
                 'ClassNames', obj.classNames,...
-                'OptimizeHyperparameters', {'BoxConstraint','KernelScale'},...
-                'HyperparameterOptimizationOptions',opts);     
+                'OptimizeHyperparameters', vars,...
+                'HyperparameterOptimizationOptions',opts);
+            % retrieve hyper-parameter search results
+            obj.ObjectiveMinimumTrace = obj.model.HyperparameterOptimizationResults;
+        end
+        
+        function outputs = predict(obj, inputs)
+           outputs = predict(obj.model, inputs); 
         end
         
         function acc = score(obj, inputs, targets)

@@ -1,4 +1,4 @@
-function [cleanData, X, y] =  PreProcessing (rawData, targetCol) 
+function [cleanData, X, y] = PreProcessing(rawData, targetFamily) 
     
     fprintf("Preprocessing data...\n");
     % define categorical columns
@@ -20,10 +20,15 @@ function [cleanData, X, y] =  PreProcessing (rawData, targetCol)
     % get column names
     columnNames = cleanData.Properties.VariableNames;
     % seperate features and target variables
-    targetFilter = ismember(columnNames, targetCol);
+    familyCol = 'Family';
+    targetFilter = ismember(columnNames, familyCol);
     predictorNames = cleanData.Properties.VariableNames(~targetFilter);
     % create one hot encoding of categorical variables
     X = table2array(cleanData(:, predictorNames));
     % assign target variables by converting it to numeric first.
-    y = categorical(cleanData.(targetCol));
+    %cleanData.FamilyGroup = ismember(cleanData.(familyCol), targetFamily);
+    cleanData.FamilyGroup = cleanData.(familyCol);
+    mask = ~ismember(cleanData.FamilyGroup, targetFamily);
+    cleanData.FamilyGroup(mask) = {'Other'};
+    y = categorical(cleanData.FamilyGroup);
 end
