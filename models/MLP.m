@@ -24,11 +24,11 @@ classdef MLP
             % handle input variables
             p = inputParser;
             p.addParameter('NetworkDepth', 1);
-            p.addParameter('HiddenLayerSize', 10);
-            p.addParameter('Lr', 0.1);
-            p.addParameter('Momentum', 0.8);
-            p.addParameter('TrainFcn', 'traingda');
-            p.addParameter('TransferFcn', 'logsig');
+            p.addParameter('HiddenLayerSize', 13);
+            p.addParameter('Lr', 0.062977);
+            p.addParameter('Momentum', 0.062977);
+            p.addParameter('TrainFcn', 'traingdm');
+            p.addParameter('TransferFcn', 'tansig');
             p.addParameter('epochs', 500);
             p.addParameter('trainNet', true);
             parse(p, varargin{:});
@@ -52,9 +52,12 @@ classdef MLP
             end
         end
         
-        function obj = optimize(obj)
+        function obj = optimize(obj, varargin)
             % Improve the speed of a Bayesian optimization by using
             % parallel objective function evaluation.
+            p = inputParser;
+            p.addParameter('MaxObjectiveEvaluations', 200);
+            parse(p, varargin{:});
             try
                 % Start a parallel pool
                 poolobj = gcp;
@@ -83,7 +86,7 @@ classdef MLP
             % Optimize hyperparameters
             results = bayesopt(minfn, vars, 'UseParallel', useParallel,...
                 'IsObjectiveDeterministic', false,...
-                'MaxObjectiveEvaluations',2,...
+                'MaxObjectiveEvaluations',p.Results.MaxObjectiveEvaluations,...
                 'AcquisitionFunctionName', 'expected-improvement-plus');
             T = bestPoint(results);
             
@@ -156,8 +159,8 @@ classdef MLP
         end
         
         function labels = labelsFromScores(scores, classNames)
-            labels = vec2ind(scores)';
-            labels = categorical(labels, [2, 1], cellstr(classNames));
+            ind = vec2ind(scores)';
+            labels = categorical(ind, [2, 1], cellstr(classNames));
         end
     end
 end

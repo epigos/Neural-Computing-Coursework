@@ -24,15 +24,13 @@ classdef SVM
             % function. It is good practice to standardize the data.
             % handle input variables
             p = inputParser;
-            p.addParameter('BoxConstraint', 1);
-            p.addParameter('KernelScale', 'auto');
-            p.addParameter('KernelFunction', 'rbf');
+            p.addParameter('BoxConstraint', 159.7);
+            p.addParameter('KernelFunction', 'gaussian');
             parse(p, varargin{:});
             % For reproducibility
             rng default;
             % create svm template with optimized values
             t = templateSVM('BoxConstraint', p.Results.BoxConstraint,...
-                'KernelScale',p.Results.KernelScale,...
                 'KernelFunction', p.Results.KernelFunction);
             % train svm model
             obj.model = fitcecoc(obj.X, obj.y,...
@@ -40,7 +38,10 @@ classdef SVM
                 'Learners', t);
         end
         
-        function obj = optimize(obj)
+        function obj = optimize(obj, varargin)
+            p = inputParser;
+            p.addParameter('MaxObjectiveEvaluations', 200);
+            parse(p, varargin{:});
             % Set up a partition for cross-validation. This step fixes the
             % train and test sets that the optimization uses at each step.
             % create 5-fold cross validation
@@ -51,7 +52,7 @@ classdef SVM
             % acquisition function.
             opts = struct('Optimizer','bayesopt','ShowPlots',true,...
                 'CVPartition',cv, ...
-                'MaxObjectiveEvaluations',2,...
+                'MaxObjectiveEvaluations',p.Results.MaxObjectiveEvaluations,...
                 'AcquisitionFunctionName', 'expected-improvement-plus');
             try
                 % Start a parallel pool
@@ -70,7 +71,7 @@ classdef SVM
             % function and the hyper-parameter options. Optimize all
             % eligible parameters (BoxConstraint, KernelScale,
             % KernelFunction, PolynomialOrder, Standardize).
-            vars = {'BoxConstraint','KernelScale', 'KernelFunction'};
+            vars = {'BoxConstraint', 'KernelFunction'};
             obj.model = fitcecoc(obj.X, obj.y,...
                 'ClassNames', obj.classNames,...
                 'OptimizeHyperparameters', vars,...

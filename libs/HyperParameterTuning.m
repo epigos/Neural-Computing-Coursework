@@ -7,9 +7,9 @@ function [mlp, svm] = HyperParameterTuning(X, y, classNames)
     
     %% Tune model hyperparameters
     % train and optimize SVM classifier
-    svm = SVM(X_train, y_train, classNames).optimize();
+    svm = SVM(X_train, y_train, classNames).optimize('MaxObjectiveEvaluations', 30);
     % train and optimize MLP classifier
-    mlp = MLP(X_train, y_train).optimize();
+    mlp = MLP(X_train, y_train).optimize('MaxObjectiveEvaluations', 30);
     
     %% Plot Minimum Objective Curves
    
