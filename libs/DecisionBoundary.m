@@ -3,7 +3,7 @@
 % We fit the classifiers using two chosen continuous attributes to be able
 % to visualize in 2D and 3D
 
-function DecisionBoundary(X, y, classNames)
+function DecisionBoundary(X, y, data, classNames)
     fprintf("Computing decision boundaries...\n");
     %% create feature grid
     % select 2 numerical columns
@@ -15,8 +15,8 @@ function DecisionBoundary(X, y, classNames)
     % posterior probabilities for each instance in the grid.
     colOne = X(:, cols{1});
     colTwo = X(:, cols{2});
-    x1Max = max(colOne)+1; x1Min = min(colOne)-1; step1 = (x1Max-x1Min)/500;
-    x2Max = max(colTwo)+1; x2Min = min(colTwo)-1; step2 = (x2Max-x2Min)/500;
+    x1Max = max(colOne); x1Min = min(colOne); step1 = (x1Max-x1Min)/500;
+    x2Max = max(colTwo); x2Min = min(colTwo); step2 = (x2Max-x2Min)/500;
     
     [x1Grid,x2Grid] = meshgrid(x1Min:step1:x1Max, x2Min:step2:x2Max);
     XGrid = [x1Grid(:),x2Grid(:)];
@@ -43,22 +43,33 @@ function DecisionBoundary(X, y, classNames)
     % MLP
     t1 = 'Other';
     t2 = 'Leptodactylidae';
+    % define columns rows for scatter plots
+    x1_t1 = table2array(data(y==t1, cols{1})); x2_t1 = table2array(data(y==t1, cols{2}));
+    x1_t2 = table2array(data(y==t2, cols{1})); x2_t2 = table2array(data(y==t2, cols{2}));
+    % create plot window
     figure('pos', [50 400 1200 400])
     % MLP
     subplot(1,2,1)
-    gscatter(x1Grid(:), x2Grid(:), predMLP, 'rb');
-    
+    scatter(x1Grid(predMLP==t1), x2Grid(predMLP==t1), 1, [220, 20, 60]/255, 'filled', 'MarkerEdgeAlpha', .1)
+    hold on;
+    scatter(x1Grid(predMLP==t2), x2Grid(predMLP==t2), 1, [63, 0, 255]/255, 'filled', 'MarkerEdgeAlpha', .1)
+    scatter(x1_t1, x2_t1, 20, [0.4660 0.6740 0.1880], 'filled');
+    scatter(x1_t2, x2_t2, 20, [0.9290 0.6940 0.1250], 'filled');
     title("Decision Surface - "+names{1});
-%     legend('Prediction Region 1', 'Prediction Region 2', t1, t2);
+    legend('Prediction Region 1', 'Prediction Region 2', t1, t2, 'Location', 'Best');
     xlabel(xLabel);
     ylabel(yLabel);
     axis tight
     % SVM
     subplot(1,2,2)
     hold on;
-    gscatter(x1Grid(:), x2Grid(:), predSVM, 'rb');
+    scatter(x1Grid(predSVM==t1), x2Grid(predSVM==t1), 1, [220, 20, 60]/255, 'filled', 'MarkerEdgeAlpha', .1)
+    hold on;
+    scatter(x1Grid(predSVM==t2), x2Grid(predSVM==t2), 1, [63, 0, 255]/255, 'filled', 'MarkerEdgeAlpha', .1)
+    scatter(x1_t1, x2_t1, 20, [0.4660 0.6740 0.1880], 'filled');
+    scatter(x1_t2, x2_t2, 20, [0.9290 0.6940 0.1250], 'filled');
     title("Decision Surface - "+names{2});
-%     legend('Prediction Region 1', 'Prediction Region 2', 'Class 1', 'Class 2');
+    legend('Prediction Region 1', 'Prediction Region 2', t1, t2, 'Location', 'Best');
     xlabel(xLabel);
     ylabel(yLabel);
     axis tight
@@ -66,7 +77,7 @@ function DecisionBoundary(X, y, classNames)
     %% Visualize the Probability Decision Boundary of MLP
     sz = size(x1Grid);
     % plot 2D projection of MLP
-    figure('pos', [100 200 1200 400])
+    figure('pos', [150 150 1200 400])
     subplot(1,2,1)
     hold on
     surf(x1Grid, x2Grid, reshape(posteriorMLP(1,:), sz),...
@@ -97,7 +108,7 @@ function DecisionBoundary(X, y, classNames)
     %% Visualize the Probability Decision Boundary 3D
 
     % plot 3D projection for MLP
-    figure('pos', [200 100 1200 400])
+    figure('pos', [200 50 1200 400])
     subplot(1,2,1)
     hold on
     surf(x1Grid, x2Grid, reshape(posteriorMLP(1,:), sz),...

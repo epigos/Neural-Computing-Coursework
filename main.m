@@ -46,7 +46,7 @@ while section ~= 0
             pause(3)
         case 4
             % Decision Boundaries: MLP vs SVM
-            DecisionBoundary(X, y, classNames);
+            DecisionBoundary(X, y, cleanData, classNames);
             pause(3)
         case 5
             % Learning curve of Models: MLP vs SVM
