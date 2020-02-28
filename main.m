@@ -15,7 +15,7 @@ targetFamily = 'Leptodactylidae';
 classNames = categorical({'Other', targetFamily});
 %Pre process data by converting all categorical columns to categorical data
 %type and reposition the target column to the end of the table.
-[cleanData, X, y] = PreProcessing(rawData, targetFamily);
+[cleanData, X, y, predictorNames] = PreProcessing(rawData, targetFamily);
 %% Main entry points to run scripts
 
 section = 1;
@@ -46,11 +46,11 @@ while section ~= 0
             pause(3)
         case 4
             % Decision Boundaries: MLP vs SVM
-            DecisionBoundary(X, y, cleanData, classNames);
+            DecisionBoundary(cleanData, predictorNames, classNames);
             pause(3)
         case 5
             % Learning curve of Models: MLP vs SVM
-            LearningCurve(X, y)
+            LearningCurve(X, y, classNames)
             pause(3)
         case 0
             continue

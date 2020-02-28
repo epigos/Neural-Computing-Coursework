@@ -1,4 +1,4 @@
-function [cleanData, X, y] = PreProcessing(rawData, targetFamily) 
+function [cleanData, X, y, predictorNames] = PreProcessing(rawData, targetFamily) 
     
     fprintf("Preprocessing data...\n");
     % define categorical columns

@@ -3,14 +3,16 @@
 % We fit the classifiers using two chosen continuous attributes to be able
 % to visualize in 2D and 3D
 
-function DecisionBoundary(X, y, data, classNames)
+function DecisionBoundary(data, predictorNames, classNames)
     fprintf("Computing decision boundaries...\n");
+    % define predictors and response variables
+    X = table2array(data(:, predictorNames));
+    y = categorical(data.FamilyGroup);
     %% create feature grid
     % select 2 numerical columns
     cols = {5, 19};
-    colNames = {'MFCCs_5', 'MFCCs_19'};
-    xLabel = Utils.cleanLabel(colNames{1});
-    yLabel = Utils.cleanLabel(colNames{2});
+    xLabel = 'Feature 1';
+    yLabel = 'Feature 2';
     % Define a grid of values in the observed predictor space. Predict the
     % posterior probabilities for each instance in the grid.
     colOne = X(:, cols{1});

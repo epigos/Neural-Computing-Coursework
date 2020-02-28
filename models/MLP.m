@@ -31,6 +31,9 @@ classdef MLP
             p.addParameter('TransferFcn', 'tansig');
             p.addParameter('epochs', 500);
             p.addParameter('trainNet', true);
+            p.addParameter('CrossVal', false);
+            p.addParameter('cv', cvpartition(size(obj.y, 1), 'Holdout', 1/3));
+            p.addParameter('CVfold', 0);
             parse(p, varargin{:});
             
             % Train final model on full training set using the best hyperparameters
@@ -41,12 +44,31 @@ classdef MLP
             obj.net.trainParam.epochs = p.Results.epochs;
             obj.net.trainParam.lr = p.Results.Lr; % Update Learning Rate (if any)
             obj.net.trainParam.mc = p.Results.Momentum; % Update Momentum Constant (if any)
-            obj.net.divideMode = 'none'; % Use all data for Training
+            
+            % set cross validation parameters
+            if p.Results.CrossVal
+                % Divide Training Data into Train-Validation sets
+                cv = p.Results.cv;
+                k = p.Results.CVfold;
+                rng = 1:cv.NumObservations;
+                obj.net.divideFcn = 'divideind';
+                if k
+                    obj.net.divideParam.trainInd = rng(cv.training(k));
+                    obj.net.divideParam.testInd = rng(cv.test(k));
+                else
+                    obj.net.divideParam.trainInd = rng(cv.training);
+                    obj.net.divideParam.valInd = rng(cv.test);
+                end
+            else
+                obj.net.divideMode = 'none'; % Use all data for Training
+            end
+            % update activation functions
             for i = 1:p.Results.NetworkDepth
                 % Update Activation Function of Layers
                 obj.net.layers{i}.transferFcn = char(p.Results.TransferFcn); 
             end
             
+            % train network
             if p.Results.trainNet == true
                 obj.net = train(obj.net, obj.X', obj.y');
             end
