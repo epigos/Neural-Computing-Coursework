@@ -1,3 +1,16 @@
+% ************************************************************************
+%                             LEARNING CURVE
+% ************************************************************************
+
+% This script visualizes the Learning Curve of the MLP and SVM Algorithms. 
+% It uses the best configuration from the hyper-parameter tuning. For MLP,
+% we changed the optimization procedure : instead of the recommended
+% 'logsig', we use 'tansig' to accelerate training due to limited
+% ressources. In order to stabilize the results, 10-fold cross validation
+% is used to output accuracy estimates for both training and validation
+% along with their estimated errors as represented by the standard
+% deviation.
+
 function LearningCurve(inputs, target, classNames)
     % define experiment variables
     k_folds = 10;

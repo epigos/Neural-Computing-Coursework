@@ -39,21 +39,24 @@ function PerformanceComparison(X,y, classNames, targetFamily)
     figure('Name', 'Performance comparision of classifiers',...
         'pos', [100 100 1200 600]);
     subplot(2, 2, [1, 3])
-    plot(Xsvm,Ysvm, 'b')
-    hold on
+    
+    % MLP
     plot(Xmlp,Ymlp, 'r')
+    hold on;
     % plot Optimal operating point of the ROC curve
-    plot(optSVM(1), optSVM(2),'bo')
     plot(optMLP(1), optMLP(2),'ro')
+    % SVM
+    plot(Xsvm,Ysvm, 'b')
+    plot(optSVM(1), optSVM(2),'bo')
     grid on
     % write AUC on plot
-    text(0.7,0.5,strcat('SVM AUC = ',num2str(AUCsvm)),'EdgeColor','b')
-    text(0.7,0.45,strcat('MLP AUC = ',num2str(AUCmlp)),'EdgeColor','r')
-    legend('SVM', 'MLP', 'SVM OPTROCPT',...
-         'MLP OPTROCPT', 'Location','Best')
+    text(0.7,0.3,strcat('SVM AUC = ',num2str(AUCsvm)),'EdgeColor','b')
+    text(0.7,0.35,strcat('MLP AUC = ',num2str(AUCmlp)),'EdgeColor','r')
+    legend('MLP', 'SVM',...
+         'MLP OPTROCPT','SVM OPTROCPT', 'Location','Best')
     
     xlabel('False positive rate'); ylabel('True positive rate');
-    title('ROC Curves for SVM and MLP')
+    title('ROC Curves for MLP and SVM')
     hold off
     
     %% plot confusion metrics
