@@ -50,14 +50,15 @@ classdef MLP
                 % Divide Training Data into Train-Validation sets
                 cv = p.Results.cv;
                 k = p.Results.CVfold;
-                rng = 1:cv.NumObservations;
-                obj.net.divideFcn = 'divideind';
                 if k
+                    rng = 1:cv.NumObservations;
+                    obj.net.divideFcn = 'divideind';
                     obj.net.divideParam.trainInd = rng(cv.training(k));
                     obj.net.divideParam.testInd = rng(cv.test(k));
                 else
-                    obj.net.divideParam.trainInd = rng(cv.training);
-                    obj.net.divideParam.valInd = rng(cv.test);
+                    obj.net.divideParam.trainRatio = 0.85;
+                    obj.net.divideParam.valRatio = 0.15;
+                    obj.net.divideParam.testRatio = 0;
                 end
             else
                 obj.net.divideMode = 'none'; % Use all data for Training

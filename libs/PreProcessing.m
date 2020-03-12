@@ -23,7 +23,6 @@ function [cleanData, X, y, predictorNames] = PreProcessing(rawData, targetFamily
     familyCol = 'Family';
     targetFilter = ismember(columnNames, familyCol);
     predictorNames = cleanData.Properties.VariableNames(~targetFilter);
-    % create one hot encoding of categorical variables
     X = table2array(cleanData(:, predictorNames));
     % assign target variables by converting it to numeric first.
     %cleanData.FamilyGroup = ismember(cleanData.(familyCol), targetFamily);

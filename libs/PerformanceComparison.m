@@ -6,8 +6,8 @@
 % Accuracies and confusion matrices are produced to compare each performance.
 
 function PerformanceComparison(X,y, classNames, targetFamily)
-     % define model names
-    [X_train, y_train, X_test, y_test] = Utils.train_test_split(X, y, 0.3);
+    % define model names
+    [X_train, y_train, X_test, y_test] = Utils.train_test_split(X, y, 0.2);
     
     %% Train the models with best parameters obtained from tuning
     % train SVM classifier

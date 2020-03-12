@@ -3,7 +3,7 @@ function [mlp, svm] = HyperParameterTuning(X, y, classNames)
     %   Detailed explanation goes here
     % define model names
     names = {'MLP', 'SVM'};
-    [X_train, y_train, X_test, y_test] = Utils.train_test_split(X, y, 0.3);
+    [X_train, y_train, X_test, y_test] = Utils.train_test_split(X, y, 0.2);
     
     %% Tune model hyperparameters
     % train and optimize SVM classifier
