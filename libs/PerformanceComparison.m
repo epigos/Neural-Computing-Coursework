@@ -27,6 +27,11 @@ function PerformanceComparison(X,y, classNames, targetFamily)
     % predict targets MLP on validation set
     posteriorMLP = predictMLPFn();
     predMLP = MLP.labelsFromScores(posteriorMLP, classNames);
+    
+    % compute scores
+    mlpScore = mlp.score(X_test, y_test);
+    svmScore = svm.score(X_test, y_test);
+    
     %% Compute the standard ROC curve using the scores from the models
     
     [Xsvm,Ysvm,~,AUCsvm, optSVM] = perfcurve(y_test,...
@@ -67,5 +72,13 @@ function PerformanceComparison(X,y, classNames, targetFamily)
     % visualize confusion metrics for MLP classifier
     subplot(2, 2, 4)
     Utils.plotConfusionMatrix(y_test, predMLP, 'MLP');
+    
+    %% Print Performance
+    fprintf('__________________________________________ \n')
+    fprintf('MODEL      Accuracy     \n')
+    fprintf('__________________________________________ \n')
+    fprintf('MLP        %.2f%%       \n', mean(mlpScore)*100)
+    fprintf('SVM        %.2f%%       \n', mean(svmScore)*100)
+    fprintf('__________________________________________ \n')
 end
 

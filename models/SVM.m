@@ -24,7 +24,7 @@ classdef SVM
             % function. It is good practice to standardize the data.
             % handle input variables
             p = inputParser;
-            p.addParameter('BoxConstraint', 159.7);
+            p.addParameter('BoxConstraint', 13);
             p.addParameter('KernelFunction', 'gaussian');
             parse(p, varargin{:});
             % For reproducibility
@@ -77,7 +77,10 @@ classdef SVM
                 'OptimizeHyperparameters', vars,...
                 'HyperparameterOptimizationOptions',opts);
             % retrieve hyper-parameter search results
-            obj.ObjectiveMinimumTrace = obj.model.HyperparameterOptimizationResults;
+            results = obj.model.HyperparameterOptimizationResults; 
+            obj.ObjectiveMinimumTrace = results;
+            % save results
+            save('results/Bayesopts/svm.mat', 'results');
         end
         
         function outputs = predict(obj, inputs)

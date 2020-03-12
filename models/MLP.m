@@ -29,7 +29,7 @@ classdef MLP
             p.addParameter('Momentum', 0.062977);
             p.addParameter('TrainFcn', 'traingdm');
             p.addParameter('TransferFcn', 'tansig');
-            p.addParameter('epochs', 500);
+            p.addParameter('epochs', 50);
             p.addParameter('trainNet', true);
             p.addParameter('CrossVal', false);
             p.addParameter('cv', cvpartition(size(obj.y, 1), 'Holdout', 1/3));
@@ -96,7 +96,7 @@ classdef MLP
             cv = cvpartition(size(obj.y, 1), 'Holdout', 1/3);
             % Define hyperparameters to optimize
             vars = [optimizableVariable('networkDepth', [1, 4], 'Type', 'integer');
-                optimizableVariable('hiddenLayerSize', [1, 50], 'Type', 'integer');
+                optimizableVariable('hiddenLayerSize', [1, 20], 'Type', 'integer');
                 optimizableVariable('lr', [1e-3 1], 'Transform', 'log');
                 optimizableVariable('momentum', [0.8 0.95]);
                 optimizableVariable('trainFcn', {'traingda', 'traingdm', 'traingdx', 'trainscg', 'trainoss'}, 'Type', 'categorical');
@@ -110,7 +110,9 @@ classdef MLP
             results = bayesopt(minfn, vars, 'UseParallel', useParallel,...
                 'IsObjectiveDeterministic', false,...
                 'MaxObjectiveEvaluations',p.Results.MaxObjectiveEvaluations,...
-                'AcquisitionFunctionName', 'expected-improvement-plus');
+                'AcquisitionFunctionName', 'expected-improvement-plus',...
+                'OutputFcn', {@saveToFile},...
+                'SaveFileName', 'results/Bayesopts/mlp.mat');
             T = bestPoint(results);
             
             % set hyper-parameter search results
@@ -156,7 +158,7 @@ classdef MLP
             % Build Network
             net = patternnet(hiddenLayerSize, char(trainFcn)); 
             % Specify number of epochs
-            net.trainParam.epochs = 500;
+            net.trainParam.epochs = 50;
             % Early stopping after 5 consecutive increases of Validation Performance
             net.trainParam.max_fail = 5;
             net.trainParam.lr = lr; % Update Learning Rate
