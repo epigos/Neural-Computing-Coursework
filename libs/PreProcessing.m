@@ -24,10 +24,23 @@ function [cleanData, X, y, predictorNames] = PreProcessing(rawData, targetFamily
     targetFilter = ismember(columnNames, familyCol);
     predictorNames = cleanData.Properties.VariableNames(~targetFilter);
     X = table2array(cleanData(:, predictorNames));
-    % assign target variables by converting it to numeric first.
-    %cleanData.FamilyGroup = ismember(cleanData.(familyCol), targetFamily);
+    % Regroup family class to binary classification tasks
     cleanData.FamilyGroup = cleanData.(familyCol);
     mask = ~ismember(cleanData.FamilyGroup, targetFamily);
     cleanData.FamilyGroup(mask) = {'Other'};
     y = categorical(cleanData.FamilyGroup);
+    % add noise to the results by randomly switch 20% of the
+    % classifications.
+    sz = numel(y);
+    idx = randsample(sz, floor(sz*0.20));
+    for k = 1:numel(idx)
+       if y(k) == targetFamily
+           y(k) = 'Other';
+       else
+           y(k) = targetFamily;
+       end
+    end
+    
+    cleanData.FamilyGroup = y;
+    y = categorical(y);
 end

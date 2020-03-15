@@ -23,23 +23,19 @@ classdef MLP
             %   Detailed explanation goes here
             % handle input variables
             p = inputParser;
-            p.addParameter('NetworkDepth', 1);
             p.addParameter('HiddenLayerSize', 13);
             p.addParameter('Lr', 0.062977);
             p.addParameter('Momentum', 0.062977);
             p.addParameter('TrainFcn', 'traingdm');
-            p.addParameter('TransferFcn', 'tansig');
-            p.addParameter('epochs', 50);
+            p.addParameter('epochs', 500);
             p.addParameter('trainNet', true);
             p.addParameter('CrossVal', false);
             p.addParameter('cv', cvpartition(size(obj.y, 1), 'Holdout', 1/3));
             p.addParameter('CVfold', 0);
             parse(p, varargin{:});
             
-            % Train final model on full training set using the best hyperparameters
-            hiddenLayerSize = ones(1, p.Results.NetworkDepth) * p.Results.HiddenLayerSize;
             % Build Network
-            obj.net = patternnet(hiddenLayerSize, char(p.Results.TrainFcn)); 
+            obj.net = patternnet(p.Results.HiddenLayerSize, char(p.Results.TrainFcn)); 
             % Specify number of epochs
             obj.net.trainParam.epochs = p.Results.epochs;
             obj.net.trainParam.lr = p.Results.Lr; % Update Learning Rate (if any)
@@ -63,11 +59,7 @@ classdef MLP
             else
                 obj.net.divideMode = 'none'; % Use all data for Training
             end
-            % update activation functions
-            for i = 1:p.Results.NetworkDepth
-                % Update Activation Function of Layers
-                obj.net.layers{i}.transferFcn = char(p.Results.TransferFcn); 
-            end
+           
             
             % train network
             if p.Results.trainNet == true
@@ -95,17 +87,15 @@ classdef MLP
             % Define a train/validation split to use inside the objective function
             cv = cvpartition(size(obj.y, 1), 'Holdout', 1/3);
             % Define hyperparameters to optimize
-            vars = [optimizableVariable('networkDepth', [1, 4], 'Type', 'integer');
-                optimizableVariable('hiddenLayerSize', [1, 20], 'Type', 'integer');
+            vars = [optimizableVariable('hiddenLayerSize', [1, 20], 'Type', 'integer');
                 optimizableVariable('lr', [1e-3 1], 'Transform', 'log');
                 optimizableVariable('momentum', [0.8 0.95]);
-                optimizableVariable('trainFcn', {'traingda', 'traingdm', 'traingdx', 'trainscg', 'trainoss'}, 'Type', 'categorical');
-                optimizableVariable('transferFcn', {'logsig', 'poslin', 'tansig', 'purelin'}, 'Type', 'categorical')];
+                optimizableVariable('trainFcn', {'traingda', 'traingdm', 'traingdx', 'trainscg'}, 'Type', 'categorical')];
 
             % initialize objective function for the network
             minfn = @(n)MLP.wrapFitNet(obj.X', obj.y', cv,...
-                n.networkDepth, n.hiddenLayerSize,...
-                n.lr, n.momentum, n.trainFcn, n.transferFcn);
+                n.hiddenLayerSize,...
+                n.lr, n.momentum, n.trainFcn);
             % Optimize hyperparameters
             results = bayesopt(minfn, vars, 'UseParallel', useParallel,...
                 'IsObjectiveDeterministic', false,...
@@ -119,10 +109,9 @@ classdef MLP
             obj.ObjectiveMinimumTrace = results;
             
             % Train final model on full training set using the best hyperparameters
-            obj = obj.fit('NetworkDepth', T.networkDepth,...
-                'HiddenLayerSize', T.hiddenLayerSize,...
+            obj = obj.fit('HiddenLayerSize', T.hiddenLayerSize,...
                 'Lr',T.lr, 'Momentum', T.momentum,...
-                'TrainFcn', T.trainFcn,'TransferFcn', T.transferFcn);
+                'TrainFcn', T.trainFcn);
             
         end
         function outputs = predict(obj, inputs)
@@ -144,8 +133,7 @@ classdef MLP
     
     methods(Static)
         function loss = wrapFitNet(inputs, targets, cv,...
-                hiddenLayerSize, networkDepth, lr, momentum,...
-                trainFcn, transferFcn)
+                hiddenLayerSize, lr, momentum, trainFcn)
             % Objective Function that will be used in the bayesian
             % Optimization procedure for Hyper-Parameter tuning. It builds
             % a Neural Network and evaluates its performance on a Holdout
@@ -153,21 +141,16 @@ classdef MLP
             
             % Build Network Architecture
             
-            % Define vector of Hidden Layer Size (Network Architecture)
-            hiddenLayerSize = hiddenLayerSize * ones(1, networkDepth);
+            
             % Build Network
             net = patternnet(hiddenLayerSize, char(trainFcn)); 
             % Specify number of epochs
             net.trainParam.epochs = 50;
-            % Early stopping after 5 consecutive increases of Validation Performance
-            net.trainParam.max_fail = 5;
+            % Early stopping after 6 consecutive increases of Validation Performance
+            net.trainParam.max_fail = 6;
             net.trainParam.lr = lr; % Update Learning Rate
             net.trainParam.mc = momentum; % Update Learning Rate
-            % Update Activation Function of Layers
-            for i = 1:networkDepth
-                net.layers{i}.transferFcn = char(transferFcn); 
-            end
-            
+           
             % Divide Training Data into Train-Validation sets
             rng = 1:cv.NumObservations;
             net.divideFcn = 'divideind';

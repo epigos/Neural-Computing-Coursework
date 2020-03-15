@@ -7,9 +7,9 @@ function [mlp, svm] = HyperParameterTuning(X, y, classNames)
     
     %% Tune model hyperparameters
     % train and optimize SVM classifier
-    svm = SVM(X_train, y_train, classNames).optimize('MaxObjectiveEvaluations', 30);
+    svm = SVM(X_train, y_train, classNames).optimize('MaxObjectiveEvaluations', 500);
     % train and optimize MLP classifier
-    mlp = MLP(X_train, y_train).optimize('MaxObjectiveEvaluations', 30);
+    mlp = MLP(X_train, y_train).optimize('MaxObjectiveEvaluations', 500);
     
     %% Plot Minimum Objective Curves
    
@@ -32,7 +32,12 @@ function [mlp, svm] = HyperParameterTuning(X, y, classNames)
     % evaluate models MLP on validation set
     mlpAcc = mlp.score(X_test, y_test);
     
-    fprintf("Classification accuracy for SVM is : %.2f \n", svmAcc);
-    fprintf("Classification accuracy for MLP is : %.2f \n", mlpAcc);
+    %% Print Performance
+    fprintf('__________________________________________ \n')
+    fprintf('MODEL      Accuracy     \n')
+    fprintf('__________________________________________ \n')
+    fprintf('MLP        %.2f%%       \n',        mlpAcc*100)
+    fprintf('SVM        %.2f%%       \n',        svmAcc*100)
+    fprintf('__________________________________________ \n')
 end
 
