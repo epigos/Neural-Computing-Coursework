@@ -35,7 +35,7 @@ while section ~= 0
     switch section
         case 1
             % Exploratory Data Analysis
-            DataAnalysis(cleanData);
+            DataAnalysis(cleanData, predictorNames);
             pause(3)
         case 2
             % Hyperparameter Tuning of Models
