@@ -22,13 +22,33 @@ classdef Utils
             X.household_size = zscore(X.household_size);
         end
         
-        function [cm] = plotConfusionMatrix(y_test, labels, model_name)
+        function [cmNorm] = plotConfusionMatrix(y_test, labels, model_name)
             % Plot conusion matrix for model predictions
-            cm = confusionchart(y_test, labels);
-            txt = sprintf("Confusion matrix for %s", model_name);
-            title(txt);
-            disp(txt);
-            cm.NormalizedValues
+            cm = confusionchart(y_test, labels,...
+                'ColumnSummary','column-normalized',...
+                'RowSummary','row-normalized');
+            title(model_name);
+            fprintf("Confusion matrix for %s\n", model_name);
+            cmNorm = cm.NormalizedValues;
+            disp(cmNorm);
+        end
+        
+        function [recall, precision, f1Score] = classificationReport(cm)
+            
+            sz = size(cm, 1);
+            recall = zeros(1, sz);
+            precision = zeros(1, sz);
+            f1Score = zeros(1, sz);
+            
+            for i = 1:sz
+                % calculate recall = TP / (TP + FP)
+                recall(i)=cm(i,i)/sum(cm(i,:));
+                % calculate precision = TP / (TP + FP)
+                precision(i)=cm(i,i)/sum(cm(:,i));
+                % calculate f1-score = 
+                % 2 * ((Precision * Recall) / (Precision + Recall))
+                f1Score(i) = 2 * ((precision(i) * recall(i))/(precision(i) + recall(i)));
+            end
         end
         
         function [label] = cleanLabel(colName)

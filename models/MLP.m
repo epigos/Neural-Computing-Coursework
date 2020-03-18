@@ -5,17 +5,20 @@ classdef MLP
     properties
         X
         y
+        classNames
         net
         ObjectiveMinimumTrace
     end
     
     methods
-        function obj = MLP(X,y)
+        function obj = MLP(X,y, classNames)
             %MLP Construct an instance of this class
             %   Detailed explanation goes here
             obj.X = X;
             % convert to one-hot targets
             obj.y = dummyvar(y);
+            % assign classnames
+            obj.classNames = classNames;
         end
         
         function obj = fit(obj, varargin)
@@ -23,15 +26,16 @@ classdef MLP
             %   Detailed explanation goes here
             % handle input variables
             p = inputParser;
-            p.addParameter('HiddenLayerSize', 13);
-            p.addParameter('Lr', 0.062977);
-            p.addParameter('Momentum', 0.062977);
-            p.addParameter('TrainFcn', 'traingdm');
+            p.addParameter('HiddenLayerSize', 17);
+            p.addParameter('Lr', 0.003952);
+            p.addParameter('Momentum', 0.80065);
+            p.addParameter('TrainFcn', 'trainscg');
             p.addParameter('epochs', 500);
             p.addParameter('trainNet', true);
             p.addParameter('CrossVal', false);
             p.addParameter('cv', cvpartition(size(obj.y, 1), 'Holdout', 1/3));
             p.addParameter('CVfold', 0);
+            p.addParameter('divideMode', false);
             parse(p, varargin{:});
             
             % Build Network
@@ -46,16 +50,20 @@ classdef MLP
                 % Divide Training Data into Train-Validation sets
                 cv = p.Results.cv;
                 k = p.Results.CVfold;
-                if k
-                    rng = 1:cv.NumObservations;
+                rng = 1:cv.NumObservations;         
+                if k 
                     obj.net.divideFcn = 'divideind';
                     obj.net.divideParam.trainInd = rng(cv.training(k));
-                    obj.net.divideParam.testInd = rng(cv.test(k));
+                    obj.net.divideParam.valInd = rng(cv.test(k));
                 else
-                    obj.net.divideParam.trainRatio = 0.85;
-                    obj.net.divideParam.valRatio = 0.15;
+                    obj.net.divideParam.trainRatio = rng(cv.training);
+                    obj.net.divideParam.valRatio = rng(cv.test);
                     obj.net.divideParam.testRatio = 0;
                 end
+            elseif p.Results.divideMode
+                obj.net.divideParam.trainRatio = .85; 
+                obj.net.divideParam.valRatio = .15; 
+                obj.net.divideParam.testRatio = 0;
             else
                 obj.net.divideMode = 'none'; % Use all data for Training
             end
@@ -85,12 +93,12 @@ classdef MLP
                 useParallel = false;
             end
             % Define a train/validation split to use inside the objective function
-            cv = cvpartition(size(obj.y, 1), 'Holdout', 1/3);
+            cv = cvpartition(size(obj.y, 1), 'Holdout', 0.2);
             % Define hyperparameters to optimize
             vars = [optimizableVariable('hiddenLayerSize', [1, 20], 'Type', 'integer');
                 optimizableVariable('lr', [1e-3 1], 'Transform', 'log');
                 optimizableVariable('momentum', [0.8 0.95]);
-                optimizableVariable('trainFcn', {'traingda', 'traingdm', 'traingdx', 'trainscg'}, 'Type', 'categorical')];
+                optimizableVariable('trainFcn', {'trainscg', 'traingda', 'traingdm', 'traingdx'}, 'Type', 'categorical')];
 
             % initialize objective function for the network
             minfn = @(n)MLP.wrapFitNet(obj.X', obj.y', cv,...
@@ -114,20 +122,20 @@ classdef MLP
                 'TrainFcn', T.trainFcn);
             
         end
-        function outputs = predict(obj, inputs)
-           outputs = obj.net(inputs'); 
+        function [labels, scores] = predict(obj, inputs)
+           scores = obj.net(inputs');
+           ind = vec2ind(scores)';
+           
+           scores = scores';
+           labels = categorical(ind, [2, 1], cellstr(obj.classNames));
         end
-        function acc = score(obj, inputs, targets)
+        function [acc, predicted] = score(obj, inputs, targets)
             % Evaluate network performance on validation set by computing
             % classification accuracy.
             
             % make predictions
             predicted = obj.predict(inputs);
-            
-            targets = dummyvar(targets);
-            targetInd = vec2ind(targets');
-            predInd = vec2ind(predicted);
-            acc = sum(targetInd == predInd)/numel(targetInd);
+            acc = sum(targets == predicted)/numel(targets);
         end
     end
     
@@ -166,10 +174,6 @@ classdef MLP
             loss = sum(tind(cv.test) ~= yind(cv.test))/numel(tind(cv.test));
         end
         
-        function labels = labelsFromScores(scores, classNames)
-            ind = vec2ind(scores)';
-            labels = categorical(ind, [2, 1], cellstr(classNames));
-        end
     end
 end
 

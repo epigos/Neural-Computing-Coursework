@@ -10,7 +10,7 @@ function DecisionBoundary(data, predictorNames, classNames)
     y = categorical(data.FamilyGroup);
     %% create feature grid
     % select 2 numerical columns
-    cols = {5, 19};
+    cols = {9, 11};
     xLabel = 'Feature 1';
     yLabel = 'Feature 2';
     % Define a grid of values in the observed predictor space. Predict the
@@ -27,7 +27,7 @@ function DecisionBoundary(data, predictorNames, classNames)
     X_train = [colOne, colTwo];
     % Train MLP classifier using the parameters obtained from
     % hyper-parameter tuning.
-    mlp = MLP(X_train,y).fit();
+    mlp = MLP(X_train,y, classNames).fit();
     % Train SVM classifier using the parameters obtained from
     % hyper-parameter tuning.
     svm = SVM(X_train,y, classNames).fit();
@@ -36,10 +36,9 @@ function DecisionBoundary(data, predictorNames, classNames)
     % predict the labels and posterior probabilities for each observation
     % using all classifiers.
     % make predictions for MLP
-    posteriorMLP = mlp.predict(XGrid);
-    predMLP = MLP.labelsFromScores(posteriorMLP, classNames);
+    [predMLP, posteriorMLP] = mlp.predict(XGrid);
     % make predictions for SVM
-    [predSVM, posteriorSVM] = predict(svm.model, XGrid);
+    [predSVM, posteriorSVM] = svm.predict(XGrid);
     %% DECISION SURFACE
     % Visualize the Decision Surface for each classifier 
     % MLP
@@ -82,9 +81,9 @@ function DecisionBoundary(data, predictorNames, classNames)
     figure('pos', [150 150 1200 400])
     subplot(1,2,1)
     hold on
-    surf(x1Grid, x2Grid, reshape(posteriorMLP(1,:), sz),...
+    surf(x1Grid, x2Grid, reshape(posteriorMLP(:,1), sz),...
         'EdgeColor', 'none')
-    surf(x1Grid, x2Grid, reshape(posteriorMLP(2,:), sz),...
+    surf(x1Grid, x2Grid, reshape(posteriorMLP(:,2), sz),...
         'EdgeColor', 'none')
     colorbar
     view(2)
@@ -113,9 +112,9 @@ function DecisionBoundary(data, predictorNames, classNames)
     figure('pos', [200 50 1200 400])
     subplot(1,2,1)
     hold on
-    surf(x1Grid, x2Grid, reshape(posteriorMLP(1,:), sz),...
+    surf(x1Grid, x2Grid, reshape(posteriorMLP(:,1), sz),...
         'FaceColor', 'red', 'EdgeColor', 'none')
-    surf(x1Grid, x2Grid, reshape(posteriorMLP(2,:), sz),...
+    surf(x1Grid, x2Grid, reshape(posteriorMLP(:, 2), sz),...
         'FaceColor', 'blue', 'EdgeColor', 'none')
     alpha(0.4)
     view(3)

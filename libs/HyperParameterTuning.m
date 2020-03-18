@@ -3,13 +3,13 @@ function [mlp, svm] = HyperParameterTuning(X, y, classNames)
     %   Detailed explanation goes here
     % define model names
     names = {'MLP', 'SVM'};
-    [X_train, y_train, X_test, y_test] = Utils.train_test_split(X, y, 0.2);
+    [X_train, y_train, X_test, y_test] = Utils.train_test_split(X, y, 0.1);
     
     %% Tune model hyperparameters
     % train and optimize SVM classifier
-    svm = SVM(X_train, y_train, classNames).optimize('MaxObjectiveEvaluations', 500);
+    svm = SVM(X_train, y_train, classNames).optimize('MaxObjectiveEvaluations', 300);
     % train and optimize MLP classifier
-    mlp = MLP(X_train, y_train).optimize('MaxObjectiveEvaluations', 500);
+    mlp = MLP(X_train, y_train, classNames).optimize('MaxObjectiveEvaluations', 300);
     
     %% Plot Minimum Objective Curves
    

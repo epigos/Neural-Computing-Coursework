@@ -24,7 +24,7 @@ classdef SVM
             % function. It is good practice to standardize the data.
             % handle input variables
             p = inputParser;
-            p.addParameter('BoxConstraint', 13);
+            p.addParameter('BoxConstraint', 23);
             p.addParameter('KernelFunction', 'gaussian');
             parse(p, varargin{:});
             % For reproducibility
@@ -45,7 +45,7 @@ classdef SVM
             % Set up a partition for cross-validation. This step fixes the
             % train and test sets that the optimization uses at each step.
             % create 5-fold cross validation
-            cv = cvpartition(size(obj.y, 1), 'Holdout', 1/3);
+            cv = cvpartition(size(obj.y, 1), 'Holdout', 0.2);
             % set options to use Bayesian optimization. Use the same
             % cross-validation partition cv in all optimizations. For
             % reproducibility, we use the 'expected-improvement-plus'
@@ -83,11 +83,11 @@ classdef SVM
             save('results/Bayesopts/svm.mat', 'results');
         end
         
-        function outputs = predict(obj, inputs)
-           outputs = predict(obj.model, inputs); 
+        function [outputs, scores] = predict(obj, inputs)
+           [outputs, scores] = predict(obj.model, inputs); 
         end
         
-        function acc = score(obj, inputs, targets)
+        function [acc, predicted]  = score(obj, inputs, targets)
             % Evaluate network performance on validation set by computing
             % rmse.
             predicted = predict(obj.model, inputs);

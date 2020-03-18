@@ -14,19 +14,23 @@
 function LearningCurve(inputs, target, classNames)
     % define experiment variables
     k_folds = 10;
-    inputSizes = [100 500 1000 3000 5000 7195];
+    total = numel(target);
+    % create input sizes of 10%, 30%, 50%, 70% and 100% of the datasets
+    inputSizes = floor([total*0.1 total*0.3 total*0.5 total*0.7 total*1]);
     % define experiment result variables
-    MLP_trainAvgScores = [];
-    MLP_trainStdScores = [];
-    MLP_valAvgScores = [];
-    MLP_valStdScores = [];
+    sz = numel(inputSizes);
+    MLPTrainAvgScores = zeros(1, sz);
+    MLPTrainStdScores = zeros(1, sz);
+    MLPValAvgScores = zeros(1, sz);
+    MLPValStdScores = zeros(1, sz);
 
-    SVM_trainAvgScores = [];
-    SVM_trainStdScores = [];
-    SVM_valAvgScores = [];
-    SVM_valStdScores = [];
+    SVMTrainAvgScores = zeros(1, sz);
+    SVMTrainStdScores = zeros(1, sz);
+    SVMValAvgScores = zeros(1, sz);
+    SVMValStdScores = zeros(1, sz);
     %% run experiment for different input size
-    for inputSize = inputSizes
+    for index = 1:sz
+        inputSize = inputSizes(index);
         fprintf("\n- Input Size %d \n", inputSize);
         % create subset of features and target variables
         idx = randperm(numel(target), inputSize);
@@ -38,75 +42,78 @@ function LearningCurve(inputs, target, classNames)
         cv = cvpartition(target(idx), 'KFold', k_folds, 'Stratify', true);
         
         % define cross validation result variables
-        MLP_trainScores = [];
-        MLP_valScores = [];
-        SVM_trainScores = [];
-        SVM_valScores = [];
+        MLPTrainScores = zeros(1, k_folds);
+        MLPValScores = zeros(1, k_folds);
+        SVMTrainScores = zeros(1, k_folds);
+        SVMValScores = zeros(1, k_folds);
         %% run cross validation
         for k = 1:k_folds
             fprintf("Cross Validation Fold %d/%d \n", k, k_folds);
+            X_train = X(cv.training(k), :);
+            y_train = y(cv.training(k), :);
+            X_test = X(cv.test(k), :);
+            y_test = y(cv.test(k), :);
             % define mlp classifier
-            mlp = MLP(X, y).fit('CrossVal', true, 'cv', cv, 'CVfold', k);
+            mlp = MLP(X_train, y_train, classNames).fit();
             % define svm classifier
-            svm = SVM(X(cv.training(k), :), y(cv.training(k), :), classNames).fit();
+            svm = SVM(X_train, y_train, classNames).fit();
             
             % evaluate MLP model
-            MLP_trainScore = mlp.score(X(cv.training(k), :), y(cv.training(k), :));
-            MLP_valScore = mlp.score(X(cv.test(k), :), y(cv.test(k), :));
-            % append MLP results to container
-            MLP_trainScores = [MLP_trainScores MLP_trainScore];
-            MLP_valScores = [MLP_valScores MLP_valScore];
+            MLPTrainScores(k) = mlp.score(X_train, y_train);
+            MLPValScores(k) = mlp.score(X_test, y_test);
+            
             % evaluate SVM model
-            SVM_trainScore = svm.score(X(cv.training(k), :), y(cv.training(k), :));
-            SVM_valScore = svm.score(X(cv.test(k), :), y(cv.test(k), :));
-            % append SVM results to container
-            SVM_trainScores = [SVM_trainScores SVM_trainScore];
-            SVM_valScores = [SVM_valScores SVM_valScore];
+            SVMTrainScores(k) = svm.score(X_train, y_train);
+            SVMValScores(k) = svm.score(X_test, y_test);
         end
         
         %% Calculate score average and standard deviation and append to results
         % MLP
-        MLP_trainAvgScores = [MLP_trainAvgScores mean(MLP_trainScores)];
-        MLP_trainStdScores = [MLP_trainStdScores std(MLP_trainScores)];
-        MLP_valAvgScores = [MLP_valAvgScores mean(MLP_valScores)];
-        MLP_valStdScores = [MLP_valStdScores std(MLP_valScores)];
+        MLPTrainAvgScores(index) = mean(MLPTrainScores);
+        MLPTrainStdScores(index) = std(MLPTrainScores);
+        MLPValAvgScores(index) = mean(MLPValScores);
+        MLPValStdScores(index) = std(MLPValScores);
         % SVM
-        SVM_trainAvgScores = [SVM_trainAvgScores mean(SVM_trainScores)];
-        SVM_trainStdScores = [SVM_trainStdScores std(SVM_trainScores)];
-        SVM_valAvgScores = [SVM_valAvgScores mean(SVM_valScores)];
-        SVM_valStdScores = [SVM_valStdScores std(SVM_valScores)];  
+        SVMTrainAvgScores(index) = mean(SVMTrainScores);
+        SVMTrainStdScores(index) = std(SVMTrainScores);
+        SVMValAvgScores(index) = mean(SVMValScores);
+        SVMValStdScores(index) = std(SVMValScores);  
     end
     %% Visualize experiment results
     
     % MLP
     figure('Name', 'Learning Curve', 'pos', [100 100 1200 480]);
     subplot(1,2,1)
-    patch([inputSizes fliplr(inputSizes)], [MLP_trainAvgScores+MLP_trainStdScores,...
-        fliplr(MLP_trainAvgScores-MLP_trainStdScores)],...
+    patch([inputSizes fliplr(inputSizes)], [MLPTrainAvgScores+MLPTrainStdScores,...
+        fliplr(MLPTrainAvgScores-MLPTrainStdScores)],...
         [205/255 92/255 92/255], 'edgecolor', 'none', 'FaceAlpha', 0.2);
     hold on;
-    patch([inputSizes fliplr(inputSizes)], [MLP_valAvgScores+MLP_valStdScores,...
-        fliplr(MLP_valAvgScores-MLP_valStdScores)],...
+    patch([inputSizes fliplr(inputSizes)], [MLPValAvgScores+MLPValStdScores,...
+        fliplr(MLPValAvgScores-MLPValStdScores)],...
         [100/255 149/255 237/255], 'edgecolor', 'none', 'FaceAlpha', 0.2);
-    line(inputSizes, MLP_trainAvgScores, 'color', [205/255 92/255 92/255], 'marker', '*', 'lineStyle', '-.');
-    line(inputSizes, MLP_valAvgScores, 'color', [100/255 149/255 237/255], 'marker', '*', 'lineStyle', '-.');
+    line(inputSizes, MLPTrainAvgScores, 'color', [205/255 92/255 92/255], 'marker', '*', 'lineStyle', '-.');
+    line(inputSizes, MLPValAvgScores, 'color', [100/255 149/255 237/255], 'marker', '*', 'lineStyle', '-.');
     title('Learning Curve - MLP');
+    xlabel("Training samples");
+    ylabel("Metrics");
     legend('Train Score Error', 'Validation Score Error',...
         'Train Score Estimate', 'Validation Score Estimate',...
         'Location', 'Best');
     % SVM
     subplot(1,2,2);
-    patch([inputSizes fliplr(inputSizes)], [SVM_trainAvgScores+SVM_trainStdScores,...
-        fliplr(SVM_trainAvgScores-SVM_trainStdScores)],...
+    patch([inputSizes fliplr(inputSizes)], [SVMTrainAvgScores+SVMTrainStdScores,...
+        fliplr(SVMTrainAvgScores-SVMTrainStdScores)],...
         [205/255 92/255 92/255], 'edgecolor', 'none', 'FaceAlpha', 0.2);
     hold on;
-    patch([inputSizes fliplr(inputSizes)], [SVM_valAvgScores+SVM_valStdScores,...
-        fliplr(SVM_valAvgScores-SVM_valStdScores)],...
+    patch([inputSizes fliplr(inputSizes)], [SVMValAvgScores+SVMValStdScores,...
+        fliplr(SVMValAvgScores-SVMValStdScores)],...
         [100/255 149/255 237/255], 'edgecolor', 'none', 'FaceAlpha', 0.2);
     
-    line(inputSizes, SVM_trainAvgScores, 'color', [205/255 92/255 92/255], 'marker', '*', 'lineStyle', '-.');
-    line(inputSizes, SVM_valAvgScores, 'color', [100/255 149/255 237/255], 'marker', '*', 'lineStyle', '-.');
+    line(inputSizes, SVMTrainAvgScores, 'color', [205/255 92/255 92/255], 'marker', '*', 'lineStyle', '-.');
+    line(inputSizes, SVMValAvgScores, 'color', [100/255 149/255 237/255], 'marker', '*', 'lineStyle', '-.');
     title('Learning Curve - SVM');
+    xlabel("Training samples");
+    ylabel("Metrics");
     legend('Train Score Error', 'Validation Score Error',...
         'Train Score Estimate', 'Validation Score Estimate',...
         'Location', 'Best');

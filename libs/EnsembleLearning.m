@@ -13,54 +13,72 @@ function EnsembleLearning(X,y, classNames)
     kfolds = 10;
     cv = cvpartition(y, 'KFold', kfolds, 'Stratify', true);
         
-    mlpScores = [];
-    svmScores = [];
-    ensScores = [];
+    mlp1Scores = zeros(1, kfolds);
+    mlp2Scores = zeros(1, kfolds);
+    svm1Scores = zeros(1, kfolds);
+    svm2Scores = zeros(1, kfolds);
+    ensScores = zeros(1, kfolds);
     
     for k = 1:kfolds
-        
+        X_train = X(cv.training(k), :);
+        y_train = y(cv.training(k), :);
+        X_test = X(cv.test(k), :);
+        y_test = y(cv.test(k), :);
         %% train Models
         % MLP
         % define mlp classifier
-        mlp1 = MLP(X, y).fit('TransferFcn', 'softmax',...
-        'CrossVal', true, 'cv', cv, 'CVfold', k);
-        mlp2 = MLP(X, y).fit('TransferFcn', 'tansig',...
-        'CrossVal', true, 'cv', cv, 'CVfold', k);
+        mlp1 = MLP(X_train, y_train, classNames).fit('TrainFcn', 'trainscg');
+        mlp2 = MLP(X_train, y_train, classNames).fit('TrainFcn', 'traingda');
 
         % SVM classifier
-        svm1 = SVM(X, y, classNames).fit('KernelFunction', 'rbf');
-        svm2 = SVM(X, y, classNames).fit('KernelFunction', 'polynomial');
+        svm1 = SVM(X_train, y_train, classNames).fit('KernelFunction', 'rbf');
+        svm2 = SVM(X_train, y_train, classNames).fit('KernelFunction', 'polynomial');
         
-        X_test = X(cv.test(k), :);
-        y_test = y(cv.test(k), :);
         
         % make MLP predictions
-        posteriorMLP1 = mlp1.predict(X_test);
-        mlp1Pred = MLP.labelsFromScores(posteriorMLP1, classNames);
-        posteriorMLP2 = mlp2.predict(X_test);
-        mlp2Pred = MLP.labelsFromScores(posteriorMLP2, classNames);
-        
-        majorityMLP = mode([mlp1Pred'; mlp2Pred'])';
-        
+        mlp1Pred = mlp1.predict(X_test);
+        mlp2Pred = mlp2.predict(X_test);
+                
         % make SVM predictions
-        svm1Pred = predict(svm1.model, X_test);
-        svm2Pred = predict(svm2.model, X_test);
-        majoritySVM = mode([svm1Pred'; svm2Pred'])';
+        svm1Pred = svm1.predict(X_test);
+        svm2Pred = svm2.predict(X_test);
         % make ensemble of MLP and SVM
-        majorityEns = mode([majorityMLP'; majoritySVM'])';
+        majorityEns = mode([mlp1Pred'; mlp2Pred'; svm1Pred'; svm2Pred'])';
         
         % compute accuracy
-        mlpScores = [mlpScores sum(y_test == majorityMLP)/numel(y_test)];
-        svmScores = [svmScores sum(y_test == majoritySVM)/numel(y_test)];
-        ensScores = [ensScores sum(y_test == majorityEns)/numel(y_test)];
+        mlp1Scores(k) = sum(y_test == mlp1Pred)/numel(y_test);
+        mlp2Scores(k) = sum(y_test == mlp2Pred)/numel(y_test);
+        svm1Scores(k) = sum(y_test == svm1Pred)/numel(y_test);
+        svm2Scores(k) = sum(y_test == svm2Pred)/numel(y_test);
+        ensScores(k) = sum(y_test == majorityEns)/numel(y_test);
     end
+    % plot performance
+    % MLP
+    folds = 1:kfolds;
+    figure('Name', 'Ensemble Learning', 'pos', [100 100 600 480]);
+    line(folds, mlp1Scores, 'color', [0 0.4470 0.7410], 'lineStyle', '--');
+    hold on;
+    line(folds, mlp2Scores, 'color',[0 0.4470 0.7410], 'lineStyle', '-.');
+    line(folds, svm1Scores, 'color',[0.8500 0.3250 0.0980], 'lineStyle', '--');
+    line(folds, svm2Scores, 'color',[0.8500 0.3250 0.0980], 'lineStyle', '-.');
+    line(folds, ensScores, 'color',[0.9290 0.6940 0.1250], 'lineStyle', '-');
+    title('Classification Accuracy');
+    xlabel("k-fold");
+    ylabel("Accuracy");
+    legend('MLP 1', 'MLP 2', 'SVM 1', 'SVM 2', 'Ensemble',...
+        'Location', 'Best');
+    hold off;
     %% Print Performance
-    fprintf('__________________________________________ \n')
-    fprintf('MODEL         CV Avg. Perf    CV Std. Perf \n')
-    fprintf('__________________________________________ \n')
-    fprintf('MLP Ensemble        %.2f%%          %.2f%% \n', mean(mlpScores)*100, std(mlpScores)*100)
-    fprintf('SVM Ensemble        %.2f%%          %.2f%% \n', mean(svmScores)*100, std(svmScores)*100)
-    fprintf('ENSEMBLE            %.2f%%          %.2f%% \n', mean(ensScores)*100, std(ensScores)*100)
-    fprintf('__________________________________________ \n')
+    fprintf('============================================\n')
+    fprintf('MODEL      CV Avg. Perf    CV Std. Perf     \n')
+    fprintf('============================================\n')
+    fprintf('MLP 1        %.2f%%          %.2f%%         \n', mean(mlp1Scores)*100, std(mlp1Scores)*100)
+    fprintf('MLP 1        %.2f%%          %.2f%%         \n', mean(mlp2Scores)*100, std(mlp2Scores)*100)
+    fprintf('____________________________________________\n')
+    fprintf('SVM 1        %.2f%%          %.2f%%         \n', mean(svm1Scores)*100, std(svm1Scores)*100)
+    fprintf('SVM 2        %.2f%%          %.2f%%         \n', mean(svm2Scores)*100, std(svm2Scores)*100)
+    fprintf('____________________________________________\n')
+    fprintf('ENSEMBLE     %.2f%%          %.2f%%         \n', mean(ensScores)*100, std(ensScores)*100)
+    fprintf('============================================\n')
 end
 

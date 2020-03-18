@@ -29,10 +29,10 @@ function [cleanData, X, y, predictorNames] = PreProcessing(rawData, targetFamily
     mask = ~ismember(cleanData.FamilyGroup, targetFamily);
     cleanData.FamilyGroup(mask) = {'Other'};
     y = categorical(cleanData.FamilyGroup);
-    % add noise to the results by randomly switch 20% of the
+    % add noise to the results by randomly switch 10% of the
     % classifications.
     sz = numel(y);
-    idx = randsample(sz, floor(sz*0.20));
+    idx = randsample(sz, floor(sz*0.10));
     for k = 1:numel(idx)
        if y(k) == targetFamily
            y(k) = 'Other';
