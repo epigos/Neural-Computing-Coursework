@@ -42,8 +42,8 @@ function DecisionBoundary(data, predictorNames, classNames)
     %% DECISION SURFACE
     % Visualize the Decision Surface for each classifier 
     % MLP
-    t1 = 'Other';
-    t2 = 'Leptodactylidae';
+    t1 = string(classNames(1));
+    t2 = string(classNames(2));
     % define columns rows for scatter plots
     x1_t1 = table2array(data(y==t1, cols{1})); x2_t1 = table2array(data(y==t1, cols{2}));
     x1_t2 = table2array(data(y==t2, cols{1})); x2_t2 = table2array(data(y==t2, cols{2}));

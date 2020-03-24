@@ -43,14 +43,15 @@ function EnsembleLearning(X,y, classNames)
         svm1Pred = svm1.predict(X_test);
         svm2Pred = svm2.predict(X_test);
         % make ensemble of MLP and SVM
-        majorityEns = mode([mlp1Pred'; mlp2Pred'; svm1Pred'; svm2Pred'])';
+        allPred = [mlp1Pred'; mlp2Pred'; svm1Pred'; svm2Pred'];
+        ensPred = mode(allPred)';
         
         % compute accuracy
-        mlp1Scores(k) = sum(y_test == mlp1Pred)/numel(y_test);
-        mlp2Scores(k) = sum(y_test == mlp2Pred)/numel(y_test);
-        svm1Scores(k) = sum(y_test == svm1Pred)/numel(y_test);
-        svm2Scores(k) = sum(y_test == svm2Pred)/numel(y_test);
-        ensScores(k) = sum(y_test == majorityEns)/numel(y_test);
+        mlp1Scores(k) = Utils.score(y_test, mlp1Pred);
+        mlp2Scores(k) = Utils.score(y_test, mlp2Pred);
+        svm1Scores(k) = Utils.score(y_test, svm1Pred);
+        svm2Scores(k) = Utils.score(y_test, svm2Pred);
+        ensScores(k) = Utils.score(y_test, ensPred);
     end
     % plot performance
     % MLP

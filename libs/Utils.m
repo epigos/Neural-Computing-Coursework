@@ -72,6 +72,21 @@ classdef Utils
                 data = removevars(data, colName);
             end
         end
+        
+        function [accuracy, loss] = score(targets, predictions)
+            % Function to compute classification accuracy and loss
+            accuracy = sum(targets == predictions)/numel(targets);
+            loss = 1 - accuracy;
+        end
+        
+        function bayesoptResultsToCSV(results, model)
+            % Function to write bayesian optimization results to csv
+            tbl = results.XTrace;
+            tbl.('Objective Loss') = results.ObjectiveTrace;
+            tbl.('Objective Runtime') = results.ObjectiveEvaluationTimeTrace;
+            % write results to table
+            writetable(tbl, sprintf('results/Bayesopts_%s.csv', model));
+        end
     end
 end
 

@@ -7,7 +7,7 @@ classdef MLP
         y
         classNames
         net
-        ObjectiveMinimumTrace
+        OptimizationResults
     end
     
     methods
@@ -26,9 +26,9 @@ classdef MLP
             %   Detailed explanation goes here
             % handle input variables
             p = inputParser;
-            p.addParameter('HiddenLayerSize', 17);
-            p.addParameter('Lr', 0.003952);
-            p.addParameter('Momentum', 0.80065);
+            p.addParameter('HiddenLayerSize', 13);
+            p.addParameter('Lr', 0.0074749);
+            p.addParameter('Momentum', 0.94716);
             p.addParameter('TrainFcn', 'trainscg');
             p.addParameter('epochs', 500);
             p.addParameter('trainNet', true);
@@ -108,13 +108,13 @@ classdef MLP
             results = bayesopt(minfn, vars, 'UseParallel', useParallel,...
                 'IsObjectiveDeterministic', false,...
                 'MaxObjectiveEvaluations',p.Results.MaxObjectiveEvaluations,...
-                'AcquisitionFunctionName', 'expected-improvement-plus',...
-                'OutputFcn', {@saveToFile},...
-                'SaveFileName', 'results/Bayesopts/mlp.mat');
+                'AcquisitionFunctionName', 'expected-improvement-plus');
             T = bestPoint(results);
             
             % set hyper-parameter search results
-            obj.ObjectiveMinimumTrace = results;
+            obj.OptimizationResults = results;
+            % save results
+            Utils.bayesoptResultsToCSV(results, 'MLP');
             
             % Train final model on full training set using the best hyperparameters
             obj = obj.fit('HiddenLayerSize', T.hiddenLayerSize,...
@@ -122,6 +122,15 @@ classdef MLP
                 'TrainFcn', T.trainFcn);
             
         end
+        
+        function obj = fitDefault(obj)
+            % Train a basic MLP classifier with default parameters            
+            
+            % Build Network
+            obj.net = patternnet();
+            obj.net = train(obj.net, obj.X', obj.y');
+        end
+        
         function [labels, scores] = predict(obj, inputs)
            scores = obj.net(inputs');
            ind = vec2ind(scores)';

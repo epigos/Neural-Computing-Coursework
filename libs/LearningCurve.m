@@ -95,7 +95,7 @@ function LearningCurve(inputs, target, classNames)
     line(inputSizes, MLPValAvgScores, 'color', [100/255 149/255 237/255], 'marker', '*', 'lineStyle', '-.');
     title('Learning Curve - MLP');
     xlabel("Training samples");
-    ylabel("Metrics");
+    ylabel("Accuracy");
     legend('Train Score Error', 'Validation Score Error',...
         'Train Score Estimate', 'Validation Score Estimate',...
         'Location', 'Best');
@@ -113,7 +113,7 @@ function LearningCurve(inputs, target, classNames)
     line(inputSizes, SVMValAvgScores, 'color', [100/255 149/255 237/255], 'marker', '*', 'lineStyle', '-.');
     title('Learning Curve - SVM');
     xlabel("Training samples");
-    ylabel("Metrics");
+    ylabel("Accuracy");
     legend('Train Score Error', 'Validation Score Error',...
         'Train Score Estimate', 'Validation Score Estimate',...
         'Location', 'Best');

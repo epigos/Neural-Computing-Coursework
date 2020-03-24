@@ -21,12 +21,12 @@ function DataAnalysis(data, predictorNames)
     figure('Name', "Distribution of Anuran Families", 'pos', [10 400 800 400])
     subplot(1,2,1)
     histogram(categorical(data.Family));
-    title('Families');
+    title('Distribution of Anuran Families - Original');
     ylabel('Number of Observations');
     
     subplot(1,2,2)
     histogram(categorical(data.FamilyGroup));
-    title('Target Variable : Family Group');
+    title('Distribution of Anuran Families - Regrouped');
     ylabel('Number of Observations');
     
     %% Multivariate plots
@@ -38,11 +38,12 @@ function DataAnalysis(data, predictorNames)
     
     % Relationship with targets variable
     features = data(:, predictorNames);
-    columns = features.Properties.VariableNames;
     features = table2array(features);
+    xnames = string(1:size(features, 2));
 
-    figure('Name', "Correlation Pairplot", 'pos', [100 100 1200 800])
-    gplotmatrix(features, [], data.FamilyGroup, lines(2),[],[],[],[],columns);
-    title('Scatter matrix of Features and Target Variable');
+    figure('Name', "Scatter Pairplot", 'pos', [100 100 1200 800])
+    gplotmatrix(features, [], data.FamilyGroup, lines(2),[],[],[],[],xnames);
+    xtickangle(45);
+    title('Scatter matrix of MFCCs colored by Anuran Families');
 end
 

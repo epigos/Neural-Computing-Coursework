@@ -4,13 +4,15 @@ function [mlp, svm] = HyperParameterTuning(X, y, classNames)
     % define model names
     names = {'MLP', 'SVM'};
     [X_train, y_train, X_test, y_test] = Utils.train_test_split(X, y, 0.1);
-    
     %% Tune model hyperparameters
     % train and optimize SVM classifier
-    svm = SVM(X_train, y_train, classNames).optimize('MaxObjectiveEvaluations', 300);
+    svm = SVM(X_train, y_train, classNames).optimize('MaxObjectiveEvaluations', inf);
     % train and optimize MLP classifier
-    mlp = MLP(X_train, y_train, classNames).optimize('MaxObjectiveEvaluations', 300);
+    mlp = MLP(X_train, y_train, classNames).optimize('MaxObjectiveEvaluations', inf);
     
+    %% train basic models with default parameters
+    svmDefault = SVM(X_train, y_train, classNames).fitDefault();
+    mlpDefault = MLP(X_train, y_train, classNames).fitDefault();
     %% Plot Minimum Objective Curves
    
     % return the optimization results
@@ -19,7 +21,7 @@ function [mlp, svm] = HyperParameterTuning(X, y, classNames)
     N = length(mdls);
     for i = 1:N
         % plot Minimum Objective Curve
-        plot(mdls{i}.ObjectiveMinimumTrace, @plotMinObjective);
+        plot(mdls{i}.OptimizationResults, @plotMinObjective);
     end
     grid on
     legend(names{1}, names{2},'Location','northeast')
@@ -28,16 +30,20 @@ function [mlp, svm] = HyperParameterTuning(X, y, classNames)
     ylabel('Minimum Objective Value')
     %% Check Performance with Test Set
     % evaluate models SVM on validation set
-    svmAcc = svm.score(X_test, y_test);
+    svmDefaultAcc = svmDefault.score(X_test, y_test);
+    svmTunedAcc = svm.score(X_test, y_test);
     % evaluate models MLP on validation set
-    mlpAcc = mlp.score(X_test, y_test);
-    
+    mlpDefaultAcc = mlpDefault.score(X_test, y_test);
+    mlpTunedAcc = mlp.score(X_test, y_test);
     %% Print Performance
+    fprintf('========================================== \n')
+    fprintf('MODEL              Accuracy                \n')
+    fprintf('========================================== \n')
+    fprintf('MLP Default          %.2f%%                \n',mlpDefaultAcc*100)
+    fprintf('MLP Optimized        %.2f%%                \n',mlpTunedAcc*100)
     fprintf('__________________________________________ \n')
-    fprintf('MODEL      Accuracy     \n')
-    fprintf('__________________________________________ \n')
-    fprintf('MLP        %.2f%%       \n',        mlpAcc*100)
-    fprintf('SVM        %.2f%%       \n',        svmAcc*100)
-    fprintf('__________________________________________ \n')
+    fprintf('SVM Default          %.2f%%                \n',svmDefaultAcc*100)
+    fprintf('SVM Optimized        %.2f%%                \n',svmTunedAcc*100)
+    fprintf('========================================== \n')
 end
 
