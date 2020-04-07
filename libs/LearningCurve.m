@@ -2,15 +2,11 @@
 %                             LEARNING CURVE
 % ************************************************************************
 
-% This script visualizes the Learning Curve of the MLP and SVM Algorithms. 
-% It uses the best configuration from the hyper-parameter tuning. For MLP,
-% we changed the optimization procedure : instead of the recommended
-% 'logsig', we use 'tansig' to accelerate training due to limited
-% ressources. In order to stabilize the results, 10-fold cross validation
-% is used to output accuracy estimates for both training and validation
-% along with their estimated errors as represented by the standard
-% deviation.
-
+% This script visualises the MLP and SVM Algorithm Learning Curve.
+% It uses the optimal setup of the hyper-parameter tuning. To validate the
+% tests, 10-fold cross-evaluation is used to measure the performance
+% precision of the estimations for both testing and evaluation, along with
+% their approximate errors as expressed by the standard deviation.
 function LearningCurve(inputs, target, classNames)
     % define experiment variables
     k_folds = 10;
@@ -86,13 +82,13 @@ function LearningCurve(inputs, target, classNames)
     subplot(1,2,1)
     patch([inputSizes fliplr(inputSizes)], [MLPTrainAvgScores+MLPTrainStdScores,...
         fliplr(MLPTrainAvgScores-MLPTrainStdScores)],...
-        [205/255 92/255 92/255], 'edgecolor', 'none', 'FaceAlpha', 0.2);
+        [0.6350 0.0780 0.1840], 'edgecolor', 'none', 'FaceAlpha', 0.2);
     hold on;
     patch([inputSizes fliplr(inputSizes)], [MLPValAvgScores+MLPValStdScores,...
         fliplr(MLPValAvgScores-MLPValStdScores)],...
-        [100/255 149/255 237/255], 'edgecolor', 'none', 'FaceAlpha', 0.2);
-    line(inputSizes, MLPTrainAvgScores, 'color', [205/255 92/255 92/255], 'marker', '*', 'lineStyle', '-.');
-    line(inputSizes, MLPValAvgScores, 'color', [100/255 149/255 237/255], 'marker', '*', 'lineStyle', '-.');
+        [0 0.4470 0.7410], 'edgecolor', 'none', 'FaceAlpha', 0.2);
+    line(inputSizes, MLPTrainAvgScores, 'color', [0.6350 0.0780 0.1840], 'marker', '*', 'lineStyle', '-.');
+    line(inputSizes, MLPValAvgScores, 'color', [0 0.4470 0.7410], 'marker', '*', 'lineStyle', '-.');
     title('Learning Curve - MLP');
     xlabel("Training samples");
     ylabel("Accuracy");
@@ -103,14 +99,14 @@ function LearningCurve(inputs, target, classNames)
     subplot(1,2,2);
     patch([inputSizes fliplr(inputSizes)], [SVMTrainAvgScores+SVMTrainStdScores,...
         fliplr(SVMTrainAvgScores-SVMTrainStdScores)],...
-        [205/255 92/255 92/255], 'edgecolor', 'none', 'FaceAlpha', 0.2);
+        [0.6350 0.0780 0.1840], 'edgecolor', 'none', 'FaceAlpha', 0.2);
     hold on;
     patch([inputSizes fliplr(inputSizes)], [SVMValAvgScores+SVMValStdScores,...
         fliplr(SVMValAvgScores-SVMValStdScores)],...
-        [100/255 149/255 237/255], 'edgecolor', 'none', 'FaceAlpha', 0.2);
+        [0 0.4470 0.7410], 'edgecolor', 'none', 'FaceAlpha', 0.2);
     
-    line(inputSizes, SVMTrainAvgScores, 'color', [205/255 92/255 92/255], 'marker', '*', 'lineStyle', '-.');
-    line(inputSizes, SVMValAvgScores, 'color', [100/255 149/255 237/255], 'marker', '*', 'lineStyle', '-.');
+    line(inputSizes, SVMTrainAvgScores, 'color', [0.6350 0.0780 0.1840], 'marker', '*', 'lineStyle', '-.');
+    line(inputSizes, SVMValAvgScores, 'color', [0 0.4470 0.7410], 'marker', '*', 'lineStyle', '-.');
     title('Learning Curve - SVM');
     xlabel("Training samples");
     ylabel("Accuracy");

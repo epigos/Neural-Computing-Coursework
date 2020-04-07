@@ -1,21 +1,26 @@
 % ************************************************************************
-%                        FINAL MODEL - TEST COMPARISON
+%                        PERFORMANCE COMPARISON
 % ************************************************************************
 
-% This script performs a final comparison on optimised models with a simple train-test split.
-% Accuracies and confusion matrices are produced to compare each performance.
-
-function PerformanceComparison(X,y, classNames, targetFamily)
-    % define model names
-    [X_train, y_train, X_test, y_test] = Utils.train_test_split(X, y, 1/3);
-    
+% This script performs a final comparison on optimised models with a simple
+% train-test split. Accuracies, AUC, F1-SCORE and confusion matrices are
+% produced to compare each performance.
+function PerformanceComparison(X,y, classNames)
+    % split data into training and test set of 80-20%
+    [X_train, y_train, X_test, y_test] = Utils.train_test_split(X, y, 0.2);
+    % save test data to file for submission.
+    inputs = X_test;
+    targets = y_test;
+    save('data/test.mat', 'inputs', 'targets');
     %% Train the models with best parameters obtained from tuning
-    % train SVM classifier
+    % train SVM classifier with optimized parameters
     svm = SVM(X_train, y_train, classNames).fit();
-    % train and optimize MLP classifier
+    % train and optimize MLP classifier with optimized parameters
     mlp = MLP(X_train, y_train, classNames).fit();
-    
-    
+    % save models to file for submission
+    svmModel = svm.model;
+    mlpNet = mlp.net;
+    save('results/final_models.mat', 'mlpNet', 'svmModel');    
     %% evaluate predictoins
     % predict targets for SVM on training set
     [predTrainSVM, probTrainSVM] = svm.predict(X_train);
@@ -35,6 +40,7 @@ function PerformanceComparison(X,y, classNames, targetFamily)
     svmTrainScore = svm.score(X_train, y_train);
     svmTestScore = svm.score(X_test, y_test);
     
+    targetFamily = 'Leptodactylidae';
     %% Compute the standard ROC curve using the scores from the models
     % compute training ROC curve for MLP and SVM
     [Xsvm,Ysvm,~,AUCsvm, optSVM] = perfcurve(y_train,...
@@ -101,36 +107,37 @@ function PerformanceComparison(X,y, classNames, targetFamily)
     % Plot the ROC curves on the same graph.
     figure('Name', 'Confusion Matrix MLP vs SVM',...
         'pos', [580 150 780 540]);
-    % visualize training confusion metrics for SVM classifier
-    subplot(2, 2, 1)
-    svmTrainCM = Utils.plotConfusionMatrix(y_train, predTrainSVM, 'SVM Training');
-    [svmTrainRecall, svmTrainPrecision, svmTrainF1] = Utils.classificationReport(svmTrainCM);
-    % visualize test confusion metrics for SVM classifier
-    subplot(2, 2, 2)
-    svmCM = Utils.plotConfusionMatrix(y_test, predTestSVM, 'SVM Test');
-    [svmRecall, svmPrecision, svmF1] = Utils.classificationReport(svmCM);
-    % visualize training confusion metrics for MLP classifier
-    subplot(2, 2, 3)
-    mlpTrainCM = Utils.plotConfusionMatrix(y_train, predTrainMLP, 'MLP Training');
-    [mlpTrainRecall, mlpTrainPrecision, mlpTrainF1] = Utils.classificationReport(mlpTrainCM);
-    % visualize test confusion metrics for MLP classifier
-    subplot(2, 2, 4)
-    mlpCM = Utils.plotConfusionMatrix(y_test, predTestMLP, 'MLP Test');
-    [mlpRecall, mlpPrecision, mlpF1] = Utils.classificationReport(mlpCM);
     
+    % visualize training confusion metrics for MLP classifier
+    subplot(2, 2, 1)
+    mlpTrainCM = Utils.plotConfusionMatrix(y_train, predTrainMLP, 'MLP Training');
+    mlpTrainF1 = Utils.classificationReport(mlpTrainCM);
+    % visualize test confusion metrics for MLP classifier
+    subplot(2, 2, 2)
+    mlpCM = Utils.plotConfusionMatrix(y_test, predTestMLP, 'MLP Test');
+    mlpF1 = Utils.classificationReport(mlpCM);
+    
+    % visualize training confusion metrics for SVM classifier
+    subplot(2, 2, 3)
+    svmTrainCM = Utils.plotConfusionMatrix(y_train, predTrainSVM, 'SVM Training');
+    svmTrainF1 = Utils.classificationReport(svmTrainCM);
+    % visualize test confusion metrics for SVM classifier
+    subplot(2, 2, 4)
+    svmCM = Utils.plotConfusionMatrix(y_test, predTestSVM, 'SVM Test');
+    svmF1 = Utils.classificationReport(svmCM);
     %% Print Performance metrics
-    fprintf('==========================================================\n')
-    fprintf('MODEL        Accuracy    Recall    Precision    F1-score  \n')
-    fprintf('==========================================================\n')
-    fprintf('MLP Train      %.2f%%      %.2f%%    %.2f%%       %.2f%%  \n', mlpTrainScore*100,...
-        mean(mlpTrainRecall)*100, mean(mlpTrainPrecision)*100, mean(mlpTrainF1)*100)
-    fprintf('MLP Test       %.2f%%      %.2f%%    %.2f%%       %.2f%%  \n', mlpTestScore*100,...
-        mean(mlpRecall)*100, mean(mlpPrecision)*100, mean(mlpF1)*100)
-    fprintf('__________________________________________________________\n')
-    fprintf('SVM Train      %.2f%%      %.2f%%    %.2f%%       %.2f%%  \n', svmTrainScore*100,...
-        mean(svmTrainRecall)*100, mean(svmTrainPrecision)*100, mean(svmTrainF1)*100)
-    fprintf('SVM Test       %.2f%%      %.2f%%    %.2f%%       %.2f%%  \n', svmTestScore*100,...
-        mean(svmRecall)*100, mean(svmPrecision)*100, mean(svmF1)*100)
-    fprintf('==========================================================\n')
+    fprintf('==============================================\n')
+    fprintf('MODEL        Accuracy      AUC      F1-score  \n')
+    fprintf('==============================================\n')
+    fprintf('MLP Train      %.2f%%      %.2f%%    %.2f%%   \n', mlpTrainScore*100,...
+        AUCmlp*100, mean(mlpTrainF1)*100)
+    fprintf('MLP Test       %.2f%%      %.2f%%    %.2f%%   \n', mlpTestScore*100,...
+        AUCtmlp*100, mean(mlpF1)*100)
+    fprintf('______________________________________________\n')
+    fprintf('SVM Train      %.2f%%      %.2f%%    %.2f%%   \n', svmTrainScore*100,...
+        AUCsvm*100, mean(svmTrainF1)*100)
+    fprintf('SVM Test       %.2f%%      %.2f%%    %.2f%%   \n', svmTestScore*100,...
+        AUCtsvm*100, mean(svmF1)*100)
+    fprintf('==============================================\n')
 end
 

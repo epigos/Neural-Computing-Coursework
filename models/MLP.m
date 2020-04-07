@@ -12,8 +12,7 @@ classdef MLP
     
     methods
         function obj = MLP(X,y, classNames)
-            %MLP Construct an instance of this class
-            %   Detailed explanation goes here
+            % MLP Construct an instance of this class
             obj.X = X;
             % convert to one-hot targets
             obj.y = dummyvar(y);
@@ -26,12 +25,10 @@ classdef MLP
             %   Detailed explanation goes here
             % handle input variables
             p = inputParser;
-            p.addParameter('HiddenLayerSize', 13);
-            p.addParameter('Lr', 0.0074749);
-            p.addParameter('Momentum', 0.94716);
-            p.addParameter('TrainFcn', 'trainscg');
-            p.addParameter('epochs', 500);
-            p.addParameter('trainNet', true);
+            p.addParameter('HiddenNeurons', 20);
+            p.addParameter('NetworkDepth', 2);
+            p.addParameter('TransferFcn', 'tansig');
+            p.addParameter('epochs', 200);
             p.addParameter('CrossVal', false);
             p.addParameter('cv', cvpartition(size(obj.y, 1), 'Holdout', 1/3));
             p.addParameter('CVfold', 0);
@@ -39,12 +36,17 @@ classdef MLP
             parse(p, varargin{:});
             
             % Build Network
-            obj.net = patternnet(p.Results.HiddenLayerSize, char(p.Results.TrainFcn)); 
+            networkDepth = p.Results.NetworkDepth;
+            hiddenLayerSize = ones(1, networkDepth) * p.Results.HiddenNeurons;
+            obj.net = patternnet(hiddenLayerSize); 
+            % Early stopping after 6 consecutive increases of Validation Performance
+            obj.net.trainParam.max_fail = 6;
             % Specify number of epochs
             obj.net.trainParam.epochs = p.Results.epochs;
-            obj.net.trainParam.lr = p.Results.Lr; % Update Learning Rate (if any)
-            obj.net.trainParam.mc = p.Results.Momentum; % Update Momentum Constant (if any)
-            
+            for i = 1:networkDepth
+                obj.net.layers{i}.transferFcn = char(p.Results.TransferFcn); % Update Activation Function of Layers
+            end
+           
             % set cross validation parameters
             if p.Results.CrossVal
                 % Divide Training Data into Train-Validation sets
@@ -67,19 +69,16 @@ classdef MLP
             else
                 obj.net.divideMode = 'none'; % Use all data for Training
             end
-           
             
             % train network
-            if p.Results.trainNet == true
-                obj.net = train(obj.net, obj.X', obj.y');
-            end
+            obj.net = train(obj.net, obj.X', obj.y');
         end
         
         function obj = optimize(obj, varargin)
             % Improve the speed of a Bayesian optimization by using
             % parallel objective function evaluation.
             p = inputParser;
-            p.addParameter('MaxObjectiveEvaluations', 200);
+            p.addParameter('MaxObjectiveEvaluations', 30);
             parse(p, varargin{:});
             try
                 % Start a parallel pool
@@ -92,18 +91,18 @@ classdef MLP
                 % Disable parralel pool if functionality is not available
                 useParallel = false;
             end
+            % For reproducibility
+            rng default;
             % Define a train/validation split to use inside the objective function
             cv = cvpartition(size(obj.y, 1), 'Holdout', 0.2);
             % Define hyperparameters to optimize
-            vars = [optimizableVariable('hiddenLayerSize', [1, 20], 'Type', 'integer');
-                optimizableVariable('lr', [1e-3 1], 'Transform', 'log');
-                optimizableVariable('momentum', [0.8 0.95]);
-                optimizableVariable('trainFcn', {'trainscg', 'traingda', 'traingdm', 'traingdx'}, 'Type', 'categorical')];
+            vars = [optimizableVariable('networkDepth', [1, 2], 'Type', 'integer');...
+                optimizableVariable('hiddenNeurons', [5, 30], 'Type', 'integer');
+                optimizableVariable('transferFcn', {'logsig', 'tansig'}, 'Type', 'categorical')];
 
             % initialize objective function for the network
             minfn = @(n)MLP.wrapFitNet(obj.X', obj.y', cv,...
-                n.hiddenLayerSize,...
-                n.lr, n.momentum, n.trainFcn);
+                n.hiddenNeurons, n.networkDepth, n.transferFcn);
             % Optimize hyperparameters
             results = bayesopt(minfn, vars, 'UseParallel', useParallel,...
                 'IsObjectiveDeterministic', false,...
@@ -117,9 +116,8 @@ classdef MLP
             Utils.bayesoptResultsToCSV(results, 'MLP');
             
             % Train final model on full training set using the best hyperparameters
-            obj = obj.fit('HiddenLayerSize', T.hiddenLayerSize,...
-                'Lr',T.lr, 'Momentum', T.momentum,...
-                'TrainFcn', T.trainFcn);
+            obj = obj.fit('HiddenNeurons', T.hiddenNeurons,...
+                'NetworkDepth',T.networkDepth, 'TransferFcn', T.transferFcn);
             
         end
         
@@ -150,23 +148,22 @@ classdef MLP
     
     methods(Static)
         function loss = wrapFitNet(inputs, targets, cv,...
-                hiddenLayerSize, lr, momentum, trainFcn)
+            hiddenNeurons, networkDepth, transferFcn)
             % Objective Function that will be used in the bayesian
             % Optimization procedure for Hyper-Parameter tuning. It builds
             % a Neural Network and evaluates its performance on a Holdout
             % set and returns the classification loss.
             
             % Build Network Architecture
-            
-            
-            % Build Network
-            net = patternnet(hiddenLayerSize, char(trainFcn)); 
+            hiddenLayerSize = ones(1, networkDepth) * hiddenNeurons;
+            net = patternnet(hiddenLayerSize); 
             % Specify number of epochs
-            net.trainParam.epochs = 50;
+            net.trainParam.epochs = 500;
             % Early stopping after 6 consecutive increases of Validation Performance
             net.trainParam.max_fail = 6;
-            net.trainParam.lr = lr; % Update Learning Rate
-            net.trainParam.mc = momentum; % Update Learning Rate
+            for i = 1:networkDepth
+                net.layers{i}.transferFcn = char(transferFcn); % Update Activation Function of Layers
+            end
            
             % Divide Training Data into Train-Validation sets
             rng = 1:cv.NumObservations;

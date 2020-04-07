@@ -6,16 +6,14 @@ close all; clc; clear;
 addpath(genpath("models"));
 % add libs folder to path
 addpath(genpath("libs"));
-% data source https://fsdkenya.org/publication/finaccess2019/
+% data source https://archive.ics.uci.edu/ml/datasets/Anuran+Calls+%28MFCCs%29
 dataPath = sprintf('%s/data/Frogs_MFCCs.csv', pwd);
 rawData = readtable(dataPath);
-% define the target column
-targetFamily = 'Leptodactylidae';
 % define class names
-classNames = categorical({'Other', targetFamily});
+classNames = categorical({'Other', 'Leptodactylidae'});
 %Pre process data by converting all categorical columns to categorical data
 %type and reposition the target column to the end of the table.
-[cleanData, X, y, predictorNames] = PreProcessing(rawData, targetFamily);
+[cleanData, X, y, predictorNames] = PreProcessing(rawData);
 %% Main entry points to run scripts
 
 section = 1;
@@ -44,7 +42,7 @@ while section ~= 0
             pause(3)
         case 3
             % Performance of Models: MLP vs SVM
-            PerformanceComparison(X, y, classNames, targetFamily);
+            PerformanceComparison(X, y, classNames);
             pause(3)
         case 4
             % Decision Boundaries: MLP vs SVM

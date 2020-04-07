@@ -1,8 +1,10 @@
-% Comparison of the shape of Decision Boundaries between MLP and SVM
-% classifier
-% We fit the classifiers using two chosen continuous attributes to be able
-% to visualize in 2D and 3D
+% ************************************************************************
+%                   DECISION BOUNDARY
+% ************************************************************************
 
+% This script performs comparison of the form of the decision boundary
+% between the MLP and the SVM classifiers. To be able to visualise in 2D
+% and 3D, we fit the classifiers using two chosen continuous attributes.
 function DecisionBoundary(data, predictorNames, classNames)
     fprintf("Computing decision boundaries...\n");
     % define predictors and response variables

@@ -1,11 +1,17 @@
+% ************************************************************************
+%                        DataAnalysis
+% ************************************************************************
+
+% This script performs Exploratory Data Analysis on the dataset. It
+% visualizes the distribution of target families, Parrallel Coordinates and
+% Scatter pairplot of target variable with Features.
 function DataAnalysis(data, predictorNames)
     fprintf("Performing exploratory data analysis...\n");
-    
     % Data Shape
     [rows, columns] = size(data);
     % define categorical column parameters
     catColumns = {'Family', 'Genus', 'Species'};
-    
+    % print out the data size and feature types
     fprintf("The data contains %d observations with %d columns\n\n", rows, columns);
     fprintf("The data set contains %d categorical and %d numerical features.\n",...
         length(catColumns), columns - length(catColumns));
@@ -17,26 +23,26 @@ function DataAnalysis(data, predictorNames)
     summary(data);
     %% Univariate visualizations
     
-    % Distribution of Families
+    % Distribution of Anuran Families - Original
     figure('Name', "Distribution of Anuran Families", 'pos', [10 400 800 400])
     subplot(1,2,1)
     histogram(categorical(data.Family));
     title('Distribution of Anuran Families - Original');
     ylabel('Number of Observations');
-    
+    % Distribution of Anuran Families - Regrouped
     subplot(1,2,2)
     histogram(categorical(data.FamilyGroup));
     title('Distribution of Anuran Families - Regrouped');
     ylabel('Number of Observations');
     
     %% Multivariate plots
-    % Parralel coordinates
+    % Parralel coordinates of Target and Feature variables
     data = removevars(data, 'Family');
     figure('Name', "Parralel coordinates", 'pos', [10 400 1200 640]);
     parallelplot(data, 'GroupVariable', 'FamilyGroup');
     title('Parralel coordinates of Features and Target Variable');
     
-    % Relationship with targets variable
+    % Scatter Pairplot - Relationship with targets variable
     features = data(:, predictorNames);
     features = table2array(features);
     xnames = string(1:size(features, 2));

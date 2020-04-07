@@ -1,14 +1,12 @@
 % ************************************************************************
-%                   TIME & SPACE COMPLEXITY ANALYSIS
+%                   TIME COMPLEXITY ANALYSIS
 % ************************************************************************
 
-% This script performs a Complexity Analysis of the Multi-Layer Perceptron. 
-% Time and Space Complexity will be measured using a Standard MLP with varying 
-% numbers of Training Examples, Attributes and Hidden Neurons. While testing
-% against one of these variables, the others are kept fixed at lower numbers
-% to keep computations manageable. As such, we limit ourselves to 500 
-% attributes, 10000 training examples and 10 hidden neurons when applicable.
-
+% This script executes a Multi-Layer Perceptron and Vector Support System
+% Complexity Analysis. Time Complexity will be calculated using structured
+% models with different number of training examples and attributes. The
+% experiment is run N times and the training times for both models are
+% determined and combined during each trial.
 function TimeComplexity(inputs, target, classNames)
     % define experiment variables
     [rows, columns] = size(inputs);
@@ -63,30 +61,23 @@ function TimeComplexity(inputs, target, classNames)
     
     %% Visualize experiment results
     
-    % MLP
-    figure('Name', 'Time complexity', 'pos', [100 100 1200 640]);
-    subplot(2,2,1)
+    % Experiment 1 - Time Complexity for Sample Size
+    figure('Name', 'Time complexity', 'pos', [100 100 1200 480]);
+    subplot(1,2,1)
     patch([inputSizes fliplr(inputSizes)], [MLPAvgTrainTimes+MLPStdTrainTimes,...
         fliplr(MLPAvgTrainTimes-MLPStdTrainTimes)],...
         [205/255 92/255 92/255], 'edgecolor', 'none', 'FaceAlpha', 0.2);
     hold on;
     line(inputSizes, MLPAvgTrainTimes, 'color', [205/255 92/255 92/255], 'marker', '*', 'lineStyle', '-.');
-    xlabel("Training sample size");
-    ylabel('Training Times');
-    title('Time Complexity for Sample Size : MLP');
-    legend('Train Time Error', 'Training Time Estimate',...
-        'Location', 'Best');
-    % SVM
-    subplot(2,2,2);
     patch([inputSizes fliplr(inputSizes)], [SVMAvgTrainTimes+SVMStdTrainTimes,...
         fliplr(SVMAvgTrainTimes-SVMStdTrainTimes)],...
-        [205/255 92/255 92/255], 'edgecolor', 'none', 'FaceAlpha', 0.2);
-    hold on;   
-    line(inputSizes, SVMAvgTrainTimes, 'color', [205/255 92/255 92/255], 'marker', '*', 'lineStyle', '-.');
+        [100/255 149/255 237/255], 'edgecolor', 'none', 'FaceAlpha', 0.2);
+    line(inputSizes, SVMAvgTrainTimes, 'color', [100/255 149/255 237/255], 'marker', '*', 'lineStyle', '-.');
     xlabel("Training sample size");
     ylabel('Training Times');
-    title('Time Complexity for Sample Size : SVM');
-    legend('Train Time Error', 'Training Time Estimate',...
+    title('Time Complexity for Sample Size');
+    legend('Train Time Error - MLP','Training Time Estimate - MLP',...
+        'Train Time Error - SVM', 'Training Time Estimate - SVM',...
         'Location', 'Best');
     %% Run experiments 2: Attributes size
     % Training Time as a Function of Number of Attributes
@@ -124,30 +115,22 @@ function TimeComplexity(inputs, target, classNames)
     end
     
     %% Visualize experiment results
-    
-    % MLP
-    subplot(2,2,3)
+    % Experiment 2 - Time Complexity for Attributes Size
+    subplot(1,2,2)
     patch([colSizes fliplr(colSizes)], [MLPAvgTrainTimes+MLPStdTrainTimes,...
         fliplr(MLPAvgTrainTimes-MLPStdTrainTimes)],...
-        [205/255 92/255 92/255], 'edgecolor', 'none', 'FaceAlpha', 0.2);
+        [0.6350 0.0780 0.1840], 'edgecolor', 'none', 'FaceAlpha', 0.2);
     hold on;
-    line(colSizes, MLPAvgTrainTimes, 'color', [205/255 92/255 92/255], 'marker', '*', 'lineStyle', '-.');
-    xlabel("Training Attributes size");
-    ylabel('Training Times');
-    title('Time Complexity for Attributes Size: MLP');
-    legend('Train Time Error', 'Training Time Estimate',...
-        'Location', 'Best');
-    % SVM
-    subplot(2,2,4);
+    line(colSizes, MLPAvgTrainTimes, 'color', [0.6350 0.0780 0.1840], 'marker', '*', 'lineStyle', '-.');
     patch([colSizes fliplr(colSizes)], [SVMAvgTrainTimes+SVMStdTrainTimes,...
         fliplr(SVMAvgTrainTimes-SVMStdTrainTimes)],...
-        [205/255 92/255 92/255], 'edgecolor', 'none', 'FaceAlpha', 0.2);
-    hold on;    
-    line(colSizes, SVMAvgTrainTimes, 'color', [205/255 92/255 92/255], 'marker', '*', 'lineStyle', '-.');
-    xlabel("Training Attributes Size");
+        [0 0.4470 0.7410], 'edgecolor', 'none', 'FaceAlpha', 0.2);
+    line(colSizes, SVMAvgTrainTimes, 'color', [0 0.4470 0.7410], 'marker', '*', 'lineStyle', '-.');
+    xlabel("Training Attributes size");
     ylabel('Training Times');
-    title('Time Complexity for Attribute Size : SVM');
-    legend('Train Time Error', 'Training Time Estimate',...
+    title('Time Complexity for Attributes Size');
+    legend('Train Time Error - MLP','Training Time Estimate - MLP',...
+        'Train Time Error - SVM', 'Training Time Estimate - SVM',...
         'Location', 'Best');
 end
 

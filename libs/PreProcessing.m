@@ -1,4 +1,11 @@
-function [cleanData, X, y, predictorNames] = PreProcessing(rawData, targetFamily) 
+% ************************************************************************
+%                        Preprocessing
+% ************************************************************************
+
+% This script performs a initial preprocessing of dataset such as removing 
+% unused columns,checking for missing values, spliting data into features
+% and response variables.
+function [cleanData, X, y, predictorNames] = PreProcessing(rawData) 
     
     fprintf("Preprocessing data...\n");
     % define categorical columns
@@ -26,18 +33,18 @@ function [cleanData, X, y, predictorNames] = PreProcessing(rawData, targetFamily
     X = table2array(cleanData(:, predictorNames));
     % Regroup family class to binary classification tasks
     cleanData.FamilyGroup = cleanData.(familyCol);
-    mask = ~ismember(cleanData.FamilyGroup, targetFamily);
+    mask = ~ismember(cleanData.FamilyGroup, 'Leptodactylidae');
     cleanData.FamilyGroup(mask) = {'Other'};
     y = categorical(cleanData.FamilyGroup);
     % add noise to the results by randomly switch 20% of the
     % classifications.
     sz = numel(y);
-    idx = randsample(sz, floor(sz*0.20));
+    idx = randsample(sz, floor(sz*0.30));
     for k = 1:numel(idx)
-       if y(k) == targetFamily
-           y(k) = 'Other';
+       if y(k) == "Leptodactylidae"
+           y(k) = "Other";
        else
-           y(k) = targetFamily;
+           y(k) = "Leptodactylidae";
        end
     end
     

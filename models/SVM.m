@@ -24,16 +24,17 @@ classdef SVM
             % function. It is good practice to standardize the data.
             % handle input variables
             p = inputParser;
-            p.addParameter('BoxConstraint', 8);
-            p.addParameter('KernelScale', 0.64935);
+            p.addParameter('BoxConstraint', 9);
+            p.addParameter('KernelScale', 1.0001);
             p.addParameter('KernelFunction', 'rbf');
             parse(p, varargin{:});
             % For reproducibility
             rng default;
             % create svm template with optimized values
+            sigma = p.Results.KernelScale;
             t = templateSVM('BoxConstraint', p.Results.BoxConstraint,...
-                'KernelFunction', char(p.Results.KernelFunction),...
-                'KernelScale', p.Results.KernelScale);
+                'KernelScale', sigma,...
+                'KernelFunction', p.Results.KernelFunction);
             % train svm model
             obj.model = fitcecoc(obj.X, obj.y,...
                 'ClassNames', obj.classNames,...
@@ -42,7 +43,7 @@ classdef SVM
         
         function obj = optimize(obj, varargin)
             p = inputParser;
-            p.addParameter('MaxObjectiveEvaluations', 200);
+            p.addParameter('MaxObjectiveEvaluations', 30);
             parse(p, varargin{:});
             % Set up a partition for cross-validation. This step fixes the
             % train and test sets that the optimization uses at each step.
@@ -63,16 +64,13 @@ classdef SVM
             % For reproducibility
             rng default;
             % Train and optimize SVM classifier using the guassian kernel
-            % function and the hyper-parameter options. Optimize all
-            % eligible parameters (BoxConstraint, KernelScale,
-            % KernelFunction, PolynomialOrder, Standardize).
+            % function and the hyper-parameter options.
             % Define hyperparameters to optimize
-            vars = [optimizableVariable('box',[1, 20],'Type','integer');
-                optimizableVariable('sigma',[1e-1,1e1],'Transform','log');
-                optimizableVariable('kernel', {'rbf', 'linear', 'polynomial'}, 'Type', 'categorical')];
+            vars = [optimizableVariable('C',[1, 10],'Type','integer');
+                optimizableVariable('sigma', [1, 10], 'Transform', 'log')];
             % initialize objective function for the network
             minfn = @(v)SVM.wrapFitSVM(obj.X,obj.y,obj.classNames,cv,...
-                v.box, v.sigma, v.kernel);
+                v.C, v.sigma);
             
             % Optimize hyperparameters
             % set options to use Bayesian optimization. Use the same
@@ -90,9 +88,8 @@ classdef SVM
             % save results
             Utils.bayesoptResultsToCSV(results, 'SVM');
             
-            obj = obj.fit('BoxConstraint', T.box,...
-                'KernelFunction', T.kernel,...
-                'KernelScale',T.sigma);
+            obj = obj.fit('BoxConstraint', T.C,...
+                'KernelScale', T.sigma);
         end
         
         function obj = fitDefault(obj)
@@ -120,7 +117,7 @@ classdef SVM
     end
     methods(Static)
         function loss = wrapFitSVM(inputs, targets, classNames, cv,...
-                box, sigma, kernel)
+                C, sigma)
             % Objective Function that will be used in the bayesian
             % Optimization procedure for Hyper-Parameter tuning. It builds
             % an SVM and evaluates its performance on a Holdout
@@ -131,9 +128,10 @@ classdef SVM
             y_val = targets(cv.test(), :);
             % Build onevsone SVM
             % create svm template with optimized values
-            t = templateSVM('BoxConstraint', box,...
-                'KernelFunction', char(kernel),...
-                'KernelScale', sigma);
+            % use polynomial order if kernel is polynomial else kernel
+            % scale is applied.
+            t = templateSVM('BoxConstraint', C,...
+                'KernelScale', sigma,'KernelFunction', 'rbf');
             % train svm model
             svm = fitcecoc(X_train, y_train,...
                 'ClassNames', classNames,...

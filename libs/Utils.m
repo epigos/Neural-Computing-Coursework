@@ -1,6 +1,10 @@
+% ************************************************************************
+%                        UTILS - Helper Functions
+% ************************************************************************
+
+% This script contains class definition with static functions which are
+% reusable throughout the code.
 classdef Utils
-    %UTILS Summary of this class goes here
-    %   Detailed explanation goes here
     
     methods(Static)
         function [X_train, y_train, X_test, y_test] = train_test_split(X, y, holdout)
@@ -33,32 +37,27 @@ classdef Utils
             disp(cmNorm);
         end
         
-        function [recall, precision, f1Score] = classificationReport(cm)
-            
-            sz = size(cm, 1);
+        function [f1Score, recall, precision] = classificationReport(confusionMatrix)
+            % Compute classification report from confusion matrix. This
+            % returns the F1-score, recall and precision values.
+            sz = size(confusionMatrix, 1);
             recall = zeros(1, sz);
             precision = zeros(1, sz);
             f1Score = zeros(1, sz);
             
             for i = 1:sz
                 % calculate recall = TP / (TP + FP)
-                recall(i)=cm(i,i)/sum(cm(i,:));
+                recall(i)=confusionMatrix(i,i)/sum(confusionMatrix(i,:));
                 % calculate precision = TP / (TP + FP)
-                precision(i)=cm(i,i)/sum(cm(:,i));
+                precision(i)=confusionMatrix(i,i)/sum(confusionMatrix(:,i));
                 % calculate f1-score = 
                 % 2 * ((Precision * Recall) / (Precision + Recall))
                 f1Score(i) = 2 * ((precision(i) * recall(i))/(precision(i) + recall(i)));
             end
         end
         
-        function [label] = cleanLabel(colName)
-            % Function to replace underscore with spaces in column names
-            % for labeling axis in charts.
-           label = strrep(colName, '_', ' ');
-        end
-        
         function data = getDummies(data, columns)
-            
+            % Creates One-Hot-Encoding for specified columns in data table.
             for i=1:numel(columns)
                 colName = columns{i};
                 rowData = data(:, colName);
@@ -82,8 +81,7 @@ classdef Utils
         function bayesoptResultsToCSV(results, model)
             % Function to write bayesian optimization results to csv
             tbl = results.XTrace;
-            tbl.('Objective Loss') = results.ObjectiveTrace;
-            tbl.('Objective Runtime') = results.ObjectiveEvaluationTimeTrace;
+            tbl.('Validation Accuracy') = 1 - results.ObjectiveTrace;
             % write results to table
             writetable(tbl, sprintf('results/Bayesopts_%s.csv', model));
         end
