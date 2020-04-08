@@ -36,10 +36,12 @@ function [cleanData, X, y, predictorNames] = PreProcessing(rawData)
     mask = ~ismember(cleanData.FamilyGroup, 'Leptodactylidae');
     cleanData.FamilyGroup(mask) = {'Other'};
     y = categorical(cleanData.FamilyGroup);
-    % add noise to the results by randomly switch 20% of the
+    % add noise to the results by randomly switch 30% of the
     % classifications.
     sz = numel(y);
+    % create random sample of indices of dataset
     idx = randsample(sz, floor(sz*0.30));
+    % exchange classes
     for k = 1:numel(idx)
        if y(k) == "Leptodactylidae"
            y(k) = "Other";

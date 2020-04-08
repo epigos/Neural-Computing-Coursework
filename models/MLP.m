@@ -1,18 +1,44 @@
+% ************************************************************************
+%                        MLP class
+% ************************************************************************
+
+% This script contains class definition of functions to train, optimize and
+% make predictions for MLP network. 
+% E.g usage
+%   mlp = MLP(inputs, targets, classLabels)
+% To train the network, call:
+%   mlp.fit()  
+% To run hyper-parameter tuning:
+%   mlp.optimize()
+% To make predictions:
+%   mlp.predict(testInput)
+% To prediction scores:
+%   mlp.score(testInput, testTargets)
 classdef MLP
-    %MLP Summary of this class goes here
-    %   Detailed explanation goes here
-    
+    % Creates a class which wraps the inbuilt patternnet classifier and
+    % creates resuable functions for use in all the experiments.
+    % Class inspiration: https://uk.mathworks.com/help/matlab/matlab_oop/create-a-simple-class.html
     properties
+        % Defines the properties of the class
+        % X: input features
         X
+        % y: input targets
         y
+        % classNames: class labels
         classNames
+        % net: trained fitcsvm model - Instance of fitcsvm
         net
+        % OptimizationResults: instance of BayesianOptimization - Bayesian
+        % optimization results.
         OptimizationResults
     end
     
     methods
         function obj = MLP(X,y, classNames)
-            % MLP Construct an instance of this class
+            %SVM Construct an instance of this class
+            %   X:          training set features
+            %   y:          training set targets
+            %   classNames: class labels
             obj.X = X;
             % convert to one-hot targets
             obj.y = dummyvar(y);
@@ -21,9 +47,9 @@ classdef MLP
         end
         
         function obj = fit(obj, varargin)
-            %METHOD1 Summary of this method goes here
-            %   Detailed explanation goes here
-            % handle input variables
+            % Trains Pattern recognition network using the trainscg as the
+            % default training function other parameters obtained during
+            % hyper-parameter tuning process.
             p = inputParser;
             p.addParameter('HiddenNeurons', 20);
             p.addParameter('NetworkDepth', 2);
@@ -75,8 +101,8 @@ classdef MLP
         end
         
         function obj = optimize(obj, varargin)
-            % Improve the speed of a Bayesian optimization by using
-            % parallel objective function evaluation.
+            % Run hyper-paremeter tuning for MLP classifier and returns a
+            % retrained model with the best model parameters.
             p = inputParser;
             p.addParameter('MaxObjectiveEvaluations', 30);
             parse(p, varargin{:});
@@ -93,7 +119,9 @@ classdef MLP
             end
             % For reproducibility
             rng default;
-            % Define a train/validation split to use inside the objective function
+            % Set up a partition for cross-validation. This step fixes the
+            % train and test sets that the optimization uses at each step.
+            % create holdout cross validation of 80-20% splits
             cv = cvpartition(size(obj.y, 1), 'Holdout', 0.2);
             % Define hyperparameters to optimize
             vars = [optimizableVariable('networkDepth', [1, 2], 'Type', 'integer');...
@@ -112,7 +140,7 @@ classdef MLP
             
             % set hyper-parameter search results
             obj.OptimizationResults = results;
-            % save results
+            % save results to CSV
             Utils.bayesoptResultsToCSV(results, 'MLP');
             
             % Train final model on full training set using the best hyperparameters
@@ -130,18 +158,25 @@ classdef MLP
         end
         
         function [labels, scores] = predict(obj, inputs)
-           scores = obj.net(inputs');
-           ind = vec2ind(scores)';
+            % Make prediction and returns the labels and posterior
+            % probabilities of the predictions.
+            %  inputs: features for validation set
+            scores = obj.net(inputs');
+            ind = vec2ind(scores)';
            
-           scores = scores';
-           labels = categorical(ind, [2, 1], cellstr(obj.classNames));
+            scores = scores';
+            % convert output to it's categorical class names
+            labels = categorical(ind, [2, 1], cellstr(obj.classNames));
         end
         function [acc, predicted] = score(obj, inputs, targets)
-            % Evaluate network performance on validation set by computing
+            % Evaluate model performance on validation set by computing
             % classification accuracy.
+            %   inputs: features for validation set
+            %   targets: targets for validation set
             
             % make predictions
             predicted = obj.predict(inputs);
+            % compute classification accuracy
             acc = sum(targets == predicted)/numel(targets);
         end
     end
@@ -177,6 +212,7 @@ classdef MLP
             outputs = net(inputs);
             tind = vec2ind(targets);
             yind = vec2ind(outputs);
+            % compute classification loss
             loss = sum(tind(cv.test) ~= yind(cv.test))/numel(tind(cv.test));
         end
         

@@ -9,7 +9,7 @@ addpath(genpath("libs"));
 % load the test data
 load('data/test.mat');
 % load saved models
-load('results/final_models.mat');
+load('models/final_models.mat');
 % create one-hot-encoding for target values for use in MLP
 targetOHE = dummyvar(targets);
 targetFamily = 'Leptodactylidae';

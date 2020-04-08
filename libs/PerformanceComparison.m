@@ -9,18 +9,18 @@ function PerformanceComparison(X,y, classNames)
     % split data into training and test set of 80-20%
     [X_train, y_train, X_test, y_test] = Utils.train_test_split(X, y, 0.2);
     % save test data to file for submission.
-    inputs = X_test;
-    targets = y_test;
-    save('data/test.mat', 'inputs', 'targets');
+%     inputs = X_test;
+%     targets = y_test;
+%     save('data/test.mat', 'inputs', 'targets');
     %% Train the models with best parameters obtained from tuning
     % train SVM classifier with optimized parameters
     svm = SVM(X_train, y_train, classNames).fit();
     % train and optimize MLP classifier with optimized parameters
     mlp = MLP(X_train, y_train, classNames).fit();
     % save models to file for submission
-    svmModel = svm.model;
-    mlpNet = mlp.net;
-    save('results/final_models.mat', 'mlpNet', 'svmModel');    
+%     svmModel = svm.model;
+%     mlpNet = mlp.net;
+%     save('models/final_models.mat', 'mlpNet', 'svmModel');    
     %% evaluate predictoins
     % predict targets for SVM on training set
     [predTrainSVM, probTrainSVM] = svm.predict(X_train);
