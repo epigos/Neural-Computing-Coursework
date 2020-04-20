@@ -1,53 +1,50 @@
+# Neural Computing Coursework - Comparing MLP and SVM
 
-################################################################
-			     README
-################################################################
-
-
-
-# Introduction
-##############
-
-The Readme file contains instructions and comments on the deliverables of the course work developed by Philip Adzanoukpe. Before moving on, please take a moment to read it.
+This repo contains Matlab scripts to compare the performance MLP and SVM machine learning models.
 
 # Matlab Version
-################
 
 Matlab 9.7.0.1296695 (R2019b) Update 4 was used to develop all the work.
 
 # Project Structure
-########################
 
 .
-|-- data                                        # Data directory
-|       |-- Frogs_MFCCs.csv                     # Data file in CSV format
-|       |-- test.mat                            # contains test data to test the models
-|       |-- Readme.txt                          # Data source description
-|-- libs                                        # Contains all functions used in the project
-|       |-- DataAnalysis.m                      # Function to run exploratory data analysis
-|       |-- DecisionBoundary.m                  # Function to run decision boundaries for both models
-|       |-- EnsembleLearning.m                  # Function to run Ensemble experiment
-|       |-- HyperParameterTuning.m              # Function to run hyper-parameter tuning
-|       |-- LearningCurve.m                     # Function to run learning curve experiments
-|       |-- PerformanceComparison.m             # Function to compare model performance
-|       |-- PreProcessing.m                     # Function to preprocess the data
-|       |-- TimeComplexity.m                    # Function to run time complexity experiments
-|       |-- Utils.m                             # Contains resuable functions
-|-- models                                      
-|       |-- MLP.m                               # A class definition of MLP used throughout the experiments
-|       |-- SVM.m                               # A class definition of SVM used throughout the experiments
-|       |-- final_models.mat                    # Matlab file containing final models which can be loaded and used for testing
-|-- results
-|       |-- Bayesopts_MLP.csv                   # CSV file containing full Hyper-parameter results of MLP
-|       |-- Bayesopts_SVM.csv                   # CSV file containing full Hyper-parameter results of SVM
-|-- charts
-|       |...                                    # Contains generated charts from the experiments
-|-- README.txt
-|-- main.m                                      # Main entry point to run selected scripts.
-|-- FinalModels.m                               # Scripts to execute test run on models and test data.
+├── FinalModels.m
+├── README.txt
+├── charts
+│   ├── bayesopts.png
+│   ├── cm.png
+│   ├── decision_boundary.png
+│   ├── decision_boundary3d.png
+│   ├── dist.png
+│   ├── ensemble.png
+│   ├── learning_curve.png
+│   ├── roc.png
+│   └── time_complexity.png
+├── data
+│   ├── Frogs_MFCCs.csv
+│   ├── Readme.txt
+│   └── test.mat
+├── libs
+│   ├── DataAnalysis.m
+│   ├── DecisionBoundary.m
+│   ├── EnsembleLearning.m
+│   ├── HyperParameterTuning.m
+│   ├── LearningCurve.m
+│   ├── PerformanceComparison.m
+│   ├── PreProcessing.m
+│   ├── TimeComplexity.m
+│   └── Utils.m
+├── main.m
+├── models
+│   ├── MLP.m
+│   ├── SVM.m
+│   └── final_models.mat
+└── results
+    ├── Bayesopts_MLP.csv
+    └── Bayesopts_SVM.csv
 
 # Scripts
-#########
 
 In this section, I will explain how the scripts can be run.
 
