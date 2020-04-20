@@ -62,8 +62,8 @@ function TimeComplexity(inputs, target, classNames)
     %% Visualize experiment results
     
     % Experiment 1 - Time Complexity for Sample Size
-    figure('Name', 'Time complexity', 'pos', [100 100 1200 480]);
-    subplot(1,2,1)
+    figure('Name', 'Time Complexity for Sample Size', 'pos', [100 100 1200 480]);
+    subplot(1, 2, 1)
     patch([inputSizes fliplr(inputSizes)], [MLPAvgTrainTimes+MLPStdTrainTimes,...
         fliplr(MLPAvgTrainTimes-MLPStdTrainTimes)],...
         [205/255 92/255 92/255], 'edgecolor', 'none', 'FaceAlpha', 0.2);
@@ -116,7 +116,8 @@ function TimeComplexity(inputs, target, classNames)
     
     %% Visualize experiment results
     % Experiment 2 - Time Complexity for Attributes Size
-    subplot(1,2,2)
+%     figure('Name', 'Time Complexity for Attributes Size', 'pos', [100 100 1200 480]);
+    subplot(1, 2, 2)
     patch([colSizes fliplr(colSizes)], [MLPAvgTrainTimes+MLPStdTrainTimes,...
         fliplr(MLPAvgTrainTimes-MLPStdTrainTimes)],...
         [0.6350 0.0780 0.1840], 'edgecolor', 'none', 'FaceAlpha', 0.2);

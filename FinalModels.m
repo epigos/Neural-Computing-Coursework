@@ -48,10 +48,10 @@ fprintf("Classification Report\n");
 fprintf('===========================================\n')
 fprintf('MODEL    Accuracy      AUC       F1-score  \n')
 fprintf('===========================================\n')
-fprintf('MLP       %.2f%%      %.2f%%       %.2f%%  \n', mlpTestScore*100,...
-    AUCmlp, mean(mlpF1)*100)
+fprintf('MLP       %.2f%%      %.3f       %.3f  \n', mlpTestScore*100,...
+    AUCmlp, mean(mlpF1))
 fprintf('___________________________________________\n')
-fprintf('SVM       %.2f%%      %.2f%%       %.2f%%  \n', svmTestScore*100,...
-    AUCsvm, mean(svmF1)*100)
+fprintf('SVM       %.2f%%      %.3f       %.3f  \n', svmTestScore*100,...
+    AUCsvm, mean(svmF1))
 fprintf('===========================================\n')
 

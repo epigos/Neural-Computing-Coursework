@@ -5,6 +5,7 @@
 % This script performs comparison of the form of the decision boundary
 % between the MLP and the SVM classifiers. To be able to visualise in 2D
 % and 3D, we fit the classifiers using two chosen continuous attributes.
+% Code adapted from: https://uk.mathworks.com/help/stats/classification-probability-example-naive-bayes.html
 function DecisionBoundary(data, predictorNames, classNames)
     fprintf("Computing decision boundaries...\n");
     % define predictors and response variables

@@ -51,16 +51,13 @@ classdef MLP
             % default training function other parameters obtained during
             % hyper-parameter tuning process.
             p = inputParser;
-            p.addParameter('HiddenNeurons', 20);
+            p.addParameter('HiddenNeurons', 22);
             p.addParameter('NetworkDepth', 2);
             p.addParameter('TransferFcn', 'tansig');
             p.addParameter('epochs', 200);
-            p.addParameter('CrossVal', false);
-            p.addParameter('cv', cvpartition(size(obj.y, 1), 'Holdout', 1/3));
-            p.addParameter('CVfold', 0);
-            p.addParameter('divideMode', false);
             parse(p, varargin{:});
-            
+            % For reproducibility
+            rng default;
             % Build Network
             networkDepth = p.Results.NetworkDepth;
             hiddenLayerSize = ones(1, networkDepth) * p.Results.HiddenNeurons;
@@ -74,28 +71,7 @@ classdef MLP
             end
            
             % set cross validation parameters
-            if p.Results.CrossVal
-                % Divide Training Data into Train-Validation sets
-                cv = p.Results.cv;
-                k = p.Results.CVfold;
-                rng = 1:cv.NumObservations;         
-                if k 
-                    obj.net.divideFcn = 'divideind';
-                    obj.net.divideParam.trainInd = rng(cv.training(k));
-                    obj.net.divideParam.valInd = rng(cv.test(k));
-                else
-                    obj.net.divideParam.trainRatio = rng(cv.training);
-                    obj.net.divideParam.valRatio = rng(cv.test);
-                    obj.net.divideParam.testRatio = 0;
-                end
-            elseif p.Results.divideMode
-                obj.net.divideParam.trainRatio = .85; 
-                obj.net.divideParam.valRatio = .15; 
-                obj.net.divideParam.testRatio = 0;
-            else
-                obj.net.divideMode = 'none'; % Use all data for Training
-            end
-            
+            obj.net.divideMode = 'none'; % Use all data for Training            
             % train network
             obj.net = train(obj.net, obj.X', obj.y');
         end
@@ -103,6 +79,7 @@ classdef MLP
         function obj = optimize(obj, varargin)
             % Run hyper-paremeter tuning for MLP classifier and returns a
             % retrained model with the best model parameters.
+            % Code adapted from: https://uk.mathworks.com/help/stats/bayesopt.html
             p = inputParser;
             p.addParameter('MaxObjectiveEvaluations', 30);
             parse(p, varargin{:});
@@ -188,6 +165,7 @@ classdef MLP
             % Optimization procedure for Hyper-Parameter tuning. It builds
             % a Neural Network and evaluates its performance on a Holdout
             % set and returns the classification loss.
+            % Code adapted from https://uk.mathworks.com/matlabcentral/answers/428298-neural-network-hyperparameter-tuning
             
             % Build Network Architecture
             hiddenLayerSize = ones(1, networkDepth) * hiddenNeurons;

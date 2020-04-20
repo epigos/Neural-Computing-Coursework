@@ -51,8 +51,8 @@ classdef SVM
             % function and other parameters obtained during hyper-parameter
             % tuning process.
             p = inputParser;
-            p.addParameter('BoxConstraint', 9);
-            p.addParameter('KernelScale', 1.0001);
+            p.addParameter('BoxConstraint', 10);
+            p.addParameter('KernelScale', 1.0012);
             p.addParameter('KernelFunction', 'rbf');
             parse(p, varargin{:});
             % For reproducibility
@@ -68,6 +68,7 @@ classdef SVM
         function obj = optimize(obj, varargin)
             % Run hyper-paremeter tuning for SVM classifier and returns a
             % retrained model with the best model parameters.
+            % Code adapted from: https://uk.mathworks.com/help/stats/bayesopt.html
             p = inputParser;
             p.addParameter('MaxObjectiveEvaluations', 30);
             parse(p, varargin{:});
