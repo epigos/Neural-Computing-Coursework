@@ -7,7 +7,7 @@ This repo contains Matlab scripts to compare the performance MLP and SVM machine
 Matlab 9.7.0.1296695 (R2019b) Update 4 was used to develop all the work.
 
 # Project Structure
-
+```bash
 .
 ├── FinalModels.m
 ├── README.txt
@@ -43,7 +43,7 @@ Matlab 9.7.0.1296695 (R2019b) Update 4 was used to develop all the work.
 └── results
     ├── Bayesopts_MLP.csv
     └── Bayesopts_SVM.csv
-
+```
 # Scripts
 
 In this section, I will explain how the scripts can be run.
