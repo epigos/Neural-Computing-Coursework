@@ -24,18 +24,18 @@ Matlab 9.7.0.1296695 (R2019b) Update 4 was used to develop all the work.
 |       |-- test.mat                            # contains test data to test the models
 |       |-- Readme.txt                          # Data source description
 |-- libs                                        # Contains all functions used in the project
-|       |-- DataAnalysis.m                      # Function to run exploratory data analysis
-|       |-- DecisionBoundary.m                  # Function to run decision boundaries for both models
-|       |-- EnsembleLearning.m                  # Function to run Ensemble experiment
-|       |-- HyperParameterTuning.m              # Function to run hyper-parameter tuning
+|Â Â      |-- DataAnalysis.m                      # Function to run exploratory data analysis
+|Â Â      |-- DecisionBoundary.m                  # Function to run decision boundaries for both models
+|Â Â      |-- EnsembleLearning.m                  # Function to run Ensemble experiment
+|Â Â      |-- HyperParameterTuning.m              # Function to run hyper-parameter tuning
 |       |-- LearningCurve.m                     # Function to run learning curve experiments
-|       |-- PerformanceComparison.m             # Function to compare model performance
-|       |-- PreProcessing.m                     # Function to preprocess the data
-|       |-- TimeComplexity.m                    # Function to run time complexity experiments
+|Â Â      |-- PerformanceComparison.m             # Function to compare model performance
+|Â Â      |-- PreProcessing.m                     # Function to preprocess the data
+|Â Â      |-- TimeComplexity.m                    # Function to run time complexity experiments
 |       |-- Utils.m                             # Contains resuable functions
 |-- models                                      
-|       |-- MLP.m                               # A class definition of MLP used throughout the experiments
-|       |-- SVM.m                               # A class definition of SVM used throughout the experiments
+|Â Â      |-- MLP.m                               # A class definition of MLP used throughout the experiments
+|Â Â      |-- SVM.m                               # A class definition of SVM used throughout the experiments
 |       |-- final_models.mat                    # Matlab file containing final models which can be loaded and used for testing
 |-- results
 |       |-- Bayesopts_MLP.csv                   # CSV file containing full Hyper-parameter results of MLP
